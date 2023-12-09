@@ -1,0 +1,596 @@
+<html>
+  <head>
+    <link rel="icon" type="image/x-icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBmRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAAQAAAATgAAAAAAAABgAAAAAQAAAGAAAAABcGFpbnQubmV0IDUuMC45AP/bAEMAAgEBAQEBAgEBAQICAgICBAMCAgICBQQEAwQGBQYGBgUGBgYHCQgGBwkHBgYICwgJCgoKCgoGCAsMCwoMCQoKCv/bAEMBAgICAgICBQMDBQoHBgcKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCv/AABEIABAAEAMBEgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APyt1zXNP+MGntp+nybkbhmFGuaHp/wf09tQ0+Pai8sor92xP1j2P/Crbl8tj8Dwv1X23/CTfm8w0PXNP+D+nrp+oSbUXhWNGh6Hp/xg09dQ1CPcjcqpp4X6z7Ff2Xbl8wxX1X2r/ta/N5H/2Q==">
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <style>
+      body{
+        font-family: monospace;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #374151;
+        color: #eee;
+      }
+      .global_container{
+        padding: 10px;
+        height: 95%;
+      }
+      #myDiagramDiv{
+        width: 100%;
+        height: 100%;
+      }
+
+      #node_editor{
+        position: fixed;
+        width: 420px;
+        /* height: 280px; */
+        right: 0px;
+        top: 0px;
+        background: #ffffff;
+        z-index: 10000;
+        color: #374151;
+        padding: 5px;
+      }
+
+      #node_editor input{
+        width: 300px;
+      }
+
+      fieldset{
+        border: none;
+      }
+
+      fieldset div{
+        display: inline-block;
+        font-size: 10px;
+      }
+
+      fieldset div input{
+        width: 10px !important;
+        height: 8px;
+        margin: 0px;
+        pointer-events: none;
+      }
+      
+      label{
+        border: 1px #ffffff solid;
+        padding: 3px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      label:hover {
+        color: #ff5500;
+      }
+      
+      fieldset div label{
+        padding: 3px 3px;
+        border: 1px #374151 solid;
+      }
+
+      #node_editor *{
+        user-select: none;
+      }
+
+      #editor_menu{
+        display: inline-block;
+        clear: left;
+        width: 100%;
+      }
+
+      .display_none{
+        display: none;
+      }
+
+    </style>
+  </head>
+  <body>
+    <script src="https://unpkg.com/gojs@2.3.12/release/go.js"></script>
+
+    <div id="myDiagramDiv"></div>
+    <div id="node_editor">
+      <div id="editor_menu">
+        <label for="load_data">load data<input style="display: none;" id="load_data" type="file" accept=".json"></label>
+        <label for="save_data">save data<button style="display: none;" id="save_data">save_data</button></label>
+      </div>
+      <hr>
+      <div id="editor_body" style="width:100%">
+        <input type="text" id="task_name">: task name<br><br>
+        <textarea type="text" cols="50" rows="2" id="task_description">task description</textarea><br><br>
+        <input type="text" id="task_link">: task link<br>
+        <fieldset id="task_priority">
+          priority: <br>
+          <div>
+            <label for="priority_low"> <input class="task_priority" type="radio" id="priority_low" name="priority" value="low" checked /> low</label>
+          </div>
+          <div>
+            <label for="priority_mid"> <input class="task_priority" type="radio" id="priority_mid" name="priority" value="mid"/> mid</label>
+          </div> 
+          <div>
+            <label for="priority_high"> <input class="task_priority" type="radio" id="priority_high" name="priority" value="high"/> high</label>
+          </div>
+        </fieldset>
+        <fieldset id="task_state">
+          state: <br>
+          <div>
+            <label for="state_todo"> <input  class="task_state" type="radio" id="state_todo" name="task_state" value="todo" checked /> todo </label>
+          </div>
+          <div>
+            <label for="state_run"> <input  class="task_state" type="radio" id="state_run" name="task_state" value="run"/> run </label>
+          </div> 
+          <div>
+            <label for="state_stop"> <input class="task_state" type="radio" id="state_stop" name="task_state" value="stop"/> stop</label>
+          </div>
+          <div>
+            <label for="state_finish"> <input class="task_state" type="radio" id="state_finish" name="task_state" value="finish"/> done </label>
+          </div>
+          <div>
+            <label for="state_fix"> <input class="task_state" type="radio" id="state_fix" name="task_state" value="fix"/> fix </label>
+          </div>
+          <div>
+            <label for="state_back"> <input class="task_state" type="radio" id="state_back" name="task_state" value="back"/> back </label>
+          </div>
+          <div>
+            <label for="state_test"> <input class="task_state" type="radio" id="state_test" name="task_state" value="test"/> test </label>
+          </div>
+        </fieldset> 
+      </div>
+    </div>
+    
+    <script>
+
+
+      window.onload = () => {
+
+        const $$ = ( _id ) => {
+          return document.getElementById( _id );
+        };
+
+        const PRIORITY_COLORS = {
+          low: '#ccffcc',
+          mid: '#ff8800',
+          high: '#ff3300'
+        };
+
+        const STATE_COLORS = {
+          todo: '#cccccc',
+          run: '#ccffcc',
+          stop: '#ffcc00',
+          finish: '#00ccff',
+          fix: '#ffccff',
+          back: '#999999',
+          test: '#77ff77',
+        };
+
+        const NodeControl = {
+          container: $$('node_editor'),
+          task_name: $$('task_name'),
+          task_description: $$('task_description'),
+          task_link: $$('task_link'),
+          task_priority: $$('task_priority'),
+          // task_priority: $$('priority'),
+          task_state: $$('task_state'),
+          target: null,
+          editNode: function( _node ){
+            if( _node ){
+              this.target = _node;
+            } else {
+              this.target = null;
+            }
+            this.updateByNode();
+            console.log( this.target );
+          },
+          updateParams: function( fieldName, nextValue ){
+            if( this.target ){
+              this.target.diagram.model.commit( m => m.set( this.target.data, fieldName, nextValue ) );
+            }
+          },
+          init: function(){
+
+            this.updateByNode();
+
+
+            this.task_name.addEventListener( 'input', () => {
+
+              this.updateParams( 'name', this.task_name.value );
+
+            } );
+
+
+            this.task_description.addEventListener( 'input', () => {
+
+              this.updateParams( 'content', this.task_description.value );
+
+            } );
+
+
+            this.task_link.addEventListener( 'input', () => {
+
+              this.updateParams( 'link', this.task_link.value );
+
+            } );
+
+            this.task_priority.addEventListener( 'input', () => {
+
+              let checkedIs = null;
+              document.querySelectorAll('.task_priority').forEach( ( e ) => {
+                if( !!e.checked ){ checkedIs = e.value; }
+              } );
+              if( checkedIs ){
+                console.log( checkedIs );
+                this.updateParams( 'priority', checkedIs );
+                const color = PRIORITY_COLORS[ checkedIs ];
+                this.updateParams( 'stroke', color );
+                console.log( this.target );
+              }
+            } );
+
+            this.task_state.addEventListener( 'input', () => {
+              let checkedIs = null;
+              document.querySelectorAll('.task_state').forEach( ( e ) => {
+                if( !!e.checked ){ checkedIs = e.value; }
+              } );
+              if( checkedIs ){
+                console.log( checkedIs );
+                this.updateParams( 'state', checkedIs );
+                const color = STATE_COLORS[ checkedIs ];
+                this.updateParams( 'fill', color );
+                console.log( this.target );
+              }
+            } );
+
+          },
+
+          updateByNode: function(){
+
+            let data_for_set = { 
+              name: "node not found",
+              content: "description unavailable",
+              link: "no link",
+              priority: 'low',
+              state: 'todo',
+            }
+
+            if( this.target ) {
+              $$('editor_body').classList.remove('display_none');
+              const { name, content, link, priority, state } = this.target.data;
+              data_for_set = {
+                name, content, link, priority, state
+              }
+            } else {
+              $$('editor_body').classList.add('display_none');
+            }
+
+            this.task_name.value = data_for_set.name;
+            this.task_description.value = data_for_set.content;
+            this.task_link.value = data_for_set.link;
+
+            document.querySelectorAll('.task_priority').forEach( ( e ) => {
+              if( e.value !== data_for_set.priority ){ 
+                e.checked = null;
+              } else {
+                e.checked = true;
+              }
+            } );
+
+            document.querySelectorAll('.task_state').forEach( ( e ) => {
+              if( e.value !== data_for_set.state ){ 
+                e.checked = null;
+              } else {
+                e.checked = true;
+              }
+            } );
+
+          }
+        };
+
+        NodeControl.init();
+
+        const new_node_data = ( x = 0, y = 0, name = 'next node', id = "id_testid" ) => {
+
+          const basic_node_data = `{
+            "key":-5,
+            "name": ${ name },
+            "loc":"${x} ${y}",
+            "leftArray":[
+              { "portColor":"#ff9900", "portId":"left0" }
+            ],
+            "topArray":[],
+            "bottomArray":[],
+            "rightArray":[
+              { "portId":"right0", "portColor":"#33ff33" }
+            ]
+          }`;
+
+          return basic_node_data;
+
+        };
+
+        const get_basic_diagramm = () => {
+          const basic_diagram = `{ 
+            "class": "GraphLinksModel",
+            "copiesArrays": true,
+            "copiesArrayObjects": true,
+            "linkFromPortIdProperty": "fromPort",
+            "linkToPortIdProperty": "toPort",
+            "nodeDataArray": [ ${ new_node_data( 0, 0, 'test_node', _.uniqueId('id_') ) } ],
+            "linkDataArray": []
+          }`;
+
+          return basic_diagram;
+        }
+
+
+        const $ = go.GraphObject.make;  //for conciseness in defining node templates
+
+
+        myDiagram = new go.Diagram("myDiagramDiv",  //Diagram refers to its DIV HTML element by id
+          { "undoManager.isEnabled": true });
+
+            
+        // support double-clicking in the background to add a copy of this data as a node
+        myDiagram.toolManager.clickCreatingTool.archetypeNodeData = {
+          name: "task name",
+          content: "short description",
+          link: "none",
+          priority: 'low', // low mid high
+          stroke: '#ccffcc',
+          state: 'todo', // todo progress paused finished
+          fill: '#cccccc',
+          leftArray: [{ "portColor":"#ff9900", "portId":"left0" }],
+          rightArray: [{ "portId":"right0", "portColor":"#33ff33" }],
+          topArray: [],
+          bottomArray: []
+        };
+
+        // To simplify this code we define a function for creating a context menu button:
+        function makeButton(text, action, visiblePredicate) {
+          return $("ContextMenuButton",
+            $(go.TextBlock, text),
+            { click: action },
+            // don't bother with binding GraphObject.visible if there's no predicate
+            visiblePredicate ? new go.Binding("visible", "", (o, e) => o.diagram ? visiblePredicate(o, e) : false).ofObject() : {});
+        }
+
+        const nodeMenu =  // context menu for each Node
+        $("ContextMenu",
+          makeButton("Copy",
+            (e, obj) => e.diagram.commandHandler.copySelection()),
+          makeButton("Delete",
+            (e, obj) => e.diagram.commandHandler.deleteSelection()),
+          $(go.Shape, "LineH", { strokeWidth: 2, height: 1, stretch: go.GraphObject.Horizontal }),
+        );
+
+        const portSize = new go.Size(18, 36);
+
+        const portMenu = $("ContextMenu", makeButton("check port data", (e, obj) => { console.log( { e, obj } ); }), );
+
+        myDiagram.nodeTemplate = $(go.Node, "Table",
+
+          {
+            // resizable: true,
+            locationObjectName: "BODY",
+            locationSpot: go.Spot.Center,
+            selectionObjectName: "BODY",
+            contextMenu: nodeMenu,
+            selectionChanged: ( _node, b, c ) => {
+              if( _node.isSelected && myDiagram.selection.count === 1 ){
+                NodeControl.editNode( _node );
+              } else {
+                NodeControl.editNode( null );
+              }
+            },
+          },
+
+          new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+
+          // the body
+          $(go.Panel, "Auto",
+            {
+              row: 1, column: 1, name: "BODY",
+              stretch: go.GraphObject.Fill
+            },
+              
+
+            $(go.Shape, "Rectangle",
+              {
+                // fill: ( _node ) => { console.log(_node); return "#dbf6cb"; }, stroke: null, strokeWidth: 0,
+                fill: "#dbf6cb", 
+                stroke: null, 
+                strokeWidth: 7,
+                stretch:  "Auto",
+                minSize: new go.Size(320, 80),
+              },
+              new go.Binding( "stroke", "stroke" ).makeTwoWay(go.Point.stringify),  
+              new go.Binding( "fill", "fill" ).makeTwoWay(go.Point.stringify),
+            ),
+
+
+              $(go.Panel, "Vertical",
+                $(go.TextBlock,
+                  { 
+                    margin: 6, 
+                    verticalAlignment: go.Spot.Top, 
+                    textAlign: "center", 
+                    maxSize: new go.Size(320, 120),
+                    font: "bold 14px Segoe UI,sans-serif", 
+                    stroke: "#484848", 
+                    editable: false
+                  },
+                new go.Binding("text", "name").makeTwoWay()),
+                $(go.TextBlock,
+                  { 
+                    margin: 6, 
+                    verticalAlignment: go.Spot.Bottom, 
+                    textAlign: "center", 
+                    maxSize: new go.Size(320, 120),
+                    font: "bold 10px Segoe UI,sans-serif", 
+                    stroke: "#484848", 
+                    editable: false
+                   },
+                  new go.Binding("text", "content").makeTwoWay()),
+                // $(go.TextBlock,
+                //   { margin: 10, verticalAlignment: go.Spot.Bottom, textAlign: "center", font: "bold 14px Segoe UI,sans-serif", stroke: "#484848", editable: false },
+                //   new go.Binding("text", "link").makeTwoWay()),
+                $("Button",
+                  { 
+                    margin: 8,
+                    desiredSize: new go.Size(35, 18),
+                    click: ( e, obj ) => {
+                      var node = obj.part;
+                      var data = node.data;
+                      console.log( data.link );
+                      if( data.link.includes('http') ){
+                       window.open( data.link, '_blank').focus();
+                      }
+                    } 
+                  },
+                  $(go.TextBlock, "link")
+                ),
+              )
+
+          ),  // end Auto Panel body
+
+          // the Panel holding the left port elements, which are themselves Panels,
+          // created for each item in the itemArray, bound to data.leftArray
+          $(go.Panel, "Vertical",
+            new go.Binding("itemArray", "leftArray"),
+            {
+              row: 1, column: 0,
+              itemTemplate:
+                $(go.Panel,
+                  {
+                    _side: "left",  // internal property to make it easier to tell which side it's on
+                    fromSpot: go.Spot.Left, toSpot: go.Spot.Left,
+                    fromLinkable: false, toLinkable: true, cursor: "pointer",
+                  },
+                  new go.Binding("portId", "portId"),
+                  $(go.Shape, "Rectangle",
+                    {
+                      stroke: null, strokeWidth: 0,
+                      desiredSize: portSize,
+                      margin: new go.Margin(1, 0)
+                    },
+                    new go.Binding("fill", "portColor"))
+                )  // end itemTemplate
+            }
+          ),  // end Vertical Panel
+
+          // the Panel holding the right port elements, which are themselves Panels,
+          // created for each item in the itemArray, bound to data.rightArray
+          $(go.Panel, "Vertical",
+            new go.Binding("itemArray", "rightArray"),
+            {
+              row: 1, column: 2,
+              itemTemplate:
+                $(go.Panel,
+                  {
+                    _side: "right",
+                    fromSpot: go.Spot.Right, toSpot: go.Spot.Right,
+                    fromLinkable: true, toLinkable: false, cursor: "pointer",
+                  },
+                  new go.Binding("portId", "portId"),
+                  $(go.Shape, "Rectangle",
+                    {
+                      stroke: null, strokeWidth: 0,
+                      desiredSize: portSize,
+                      margin: new go.Margin(1, 0)
+                    },
+                    new go.Binding("fill", "portColor"))
+                )  // end itemTemplate
+            }
+          ),  // end Vertical Panel
+
+        );  // end Node
+
+      // an orthogonal link template, reshapable and relinkable
+      myDiagram.linkTemplate =
+        // $( CustomLink,  // defined below
+        $( go.Link,  // defined below
+          {
+            routing: go.Link.AvoidsNodes,
+            corner: 6,
+            curve: go.Link.JumpOver,
+            reshapable: true,
+            resegmentable: true,
+            relinkableFrom: true,
+            relinkableTo: true
+          },
+          new go.Binding("points").makeTwoWay(),
+          $(go.Shape, { stroke: "#ccffcc", strokeWidth: 2 }),
+          $(go.Shape, { toArrow: "Standard" }),
+        );
+
+      myDiagram.contextMenu =
+        $("ContextMenu",
+          makeButton("Paste",
+            (e, obj) => e.diagram.commandHandler.pasteSelection(e.diagram.toolManager.contextMenuTool.mouseDownPoint),
+            o => o.diagram.commandHandler.canPasteSelection(o.diagram.toolManager.contextMenuTool.mouseDownPoint)),
+          makeButton("Undo",
+            (e, obj) => e.diagram.commandHandler.undo(),
+            o => o.diagram.commandHandler.canUndo()),
+          makeButton("Redo",
+            (e, obj) => e.diagram.commandHandler.redo(),
+            o => o.diagram.commandHandler.canRedo())
+        );
+
+        const LOCAL_STORAGE_ITEM_NAME = 'MINDIT_DIAGRAM';
+
+        const saveModel = ( _model ) => {
+          const modelJSON = myDiagram.model.toJson();
+          localStorage.setItem( LOCAL_STORAGE_ITEM_NAME, modelJSON );
+        }
+
+        const loadModel = ( modelTXT ) => {
+          let model_text_to_json;
+          if( modelTXT ){
+            model_text_to_json = modelTXT;
+          } else {
+            model_text_to_json = localStorage.getItem( LOCAL_STORAGE_ITEM_NAME );
+          }
+
+          if( model_text_to_json ){
+            myDiagram.model = go.Model.fromJson(model_text_to_json);
+          }
+        }
+
+        myDiagram.addModelChangedListener(evt => {
+          if (evt.isTransactionFinished) saveModel(evt.model);
+        });
+
+        loadModel();
+
+
+        $$('load_data').addEventListener('change', () => {
+          const file = $$('load_data').files[0];
+          const fr = new FileReader();
+          fr.onload = () => { loadModel( fr.result ); };
+          fr.readAsText( file );
+        });
+
+        let _URL;
+        $$('save_data').addEventListener( 'click', () => {
+          const jsn_as_txt = myDiagram.model.toJson();
+          const _Blob = new Blob([ jsn_as_txt ], { type: "application/json" });
+          if( _URL ){ URL.revokeObjectURL( _URL ); }
+          _URL = URL.createObjectURL( _Blob );
+          const a = document.createElement('a');
+          a.href = _URL;
+          a.download = Date.now() + '_mindit.json';
+          a.click();
+        });
+
+        document.querySelectorAll('.task_priority').forEach( ( e ) => {
+          const color = PRIORITY_COLORS[ e.value ];
+          e.parentNode.style.backgroundColor = color;
+        } );
+
+        document.querySelectorAll('.task_state').forEach( ( e ) => {
+          const color = STATE_COLORS[ e.value ];
+          e.parentNode.style.backgroundColor = color;
+        } );
+
+      }
+    </script>
+  </body>
+</html>
