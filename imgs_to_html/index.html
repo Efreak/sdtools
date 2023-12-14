@@ -1,0 +1,1621 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="icon" type="image/x-icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBmRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAAQAAAATgAAAAAAAABgAAAAAQAAAGAAAAABcGFpbnQubmV0IDUuMC45AP/bAEMAAgEBAQEBAgEBAQICAgICBAMCAgICBQQEAwQGBQYGBgUGBgYHCQgGBwkHBgYICwgJCgoKCgoGCAsMCwoMCQoKCv/bAEMBAgICAgICBQMDBQoHBgcKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCv/AABEIABAAEAMBEgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APyt1zXNP+MGntp+nybkbhmFGuaHp/wf09tQ0+Pai8sor92xP1j2P/Crbl8tj8Dwv1X23/CTfm8w0PXNP+D+nrp+oSbUXhWNGh6Hp/xg09dQ1CPcjcqpp4X6z7Ff2Xbl8wxX1X2r/ta/N5H/2Q==">
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+      body{
+        font-family: monospace;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #374151;
+        color: #eee;
+      }
+      .global_container{
+        padding: 10px;
+        height: 95%;
+      }
+      #inspector_container{
+        width: 1600px;
+      }
+      #inspect_gallery{
+        display: inline-block;
+        width: 935px; 
+        height: 600px; 
+        border: 1px solid #333; 
+        overflow-y: scroll;
+      }
+      #inspector_thumbs_box{
+        display: inline-block;
+        background-color: #333;
+        width: 660px; 
+        height: 600px; 
+        float: right;
+      }
+      #switch_include_all, #switch_exclude_all {
+        display: inline-block;
+        cursor: pointer;
+        float: right;
+        margin: 3px;
+        border: 1px #ccc solid;
+        border-radius: 4px;
+        width: 40px;
+        height: 15px;
+        font-size: 12px;
+        line-height: 15px;
+        text-align: center;
+        padding: 0px;
+      }
+      #switch_include_all:hover {
+        color: #55ff00;
+      }
+      #switch_exclude_all:hover  {
+        color: #ff5500;
+      }
+      #thubms_size_control{
+        width: 560px;
+        height: 20px;
+        user-select: none;
+      }
+      #thumbs_list{
+        overflow-y: scroll;
+        width: 660px;
+        height: 570px;
+      }
+      #thumbs_list div{
+        /* width: 64px; */
+        /* height: 64px; */
+        margin: 2px;
+        position: relative;
+        cursor: alias;
+        float: left;
+      }
+      
+      #thumbs_list div .editable_include {
+        position: absolute;
+        cursor: pointer;
+        height: 15px;
+        width: 15px;
+        right: 1px;
+        top: 1px;
+        border-radius: 5px;
+        background: #ccffcc;
+        z-index: 10;
+        opacity: 0.6;
+        border: 1px #fff solid;
+        box-shadow: 1px 1px 1px #000;
+        user-select: none;
+      }
+
+      #thumbs_list div .editable_include.excluded{
+        background: transparent;
+      }
+
+      #thumbs_list div .editable_include:hover{
+        border: 1px #000 solid;
+        box-shadow: 1px 1px 1px #fff;
+      }
+      
+      #thumbs_list div .editable_favorite {
+        user-select: none;
+        position: absolute;
+        cursor: pointer;
+        height: 15px;
+        width: 15px;
+        right: 4px;
+        font-size: 22px;
+        bottom: 12px;
+        z-index: 10;
+        opacity: 0.4;
+        color: #fff;
+      }
+
+      #thumbs_list div .editable_favorite.active{
+        color: #faea0d;
+        text-shadow: #000 1px 0 3px;
+        opacity: 1;
+      }
+
+      #thumbs_list div .editable_favorite:hover{
+        opacity: 1;
+        color: #fff;
+        text-shadow: #000 1px 0 3px;
+      }
+
+
+      #thumbs_list div img{
+        position: absolute;
+        transform: translate( -50%, -50% );
+        top: 50%;
+        left: 50%;
+        max-width: 100%; 
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        user-select: none;
+      }
+
+      .editable_container{
+        margin: 10px 0px;
+        position: relative;
+        width: 910px;
+        height: 386px;
+        display: inline-block;
+        clear: left;
+        border-top: 1px solid #999999;
+        padding-top: 10px;
+      }
+      .editable_img{
+        max-width: 386px;
+        max-height: 386px;
+        float: left;
+      }
+      .editable__prompt_container{
+        position: absolute;
+        right: 0;
+        width: 513px;
+      }
+      .editable_pos, .editable_neg, .editable_cfg{
+        width: 512px;
+        height: 128px;
+      }
+      .hidden{ display: none; }
+      .unclickable{
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      #load_files_label, .label_button{
+        border: 1px #ffffff solid;
+        padding: 3px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #load_files_label:hover, .label_button:hover {
+        color: #ff5500;
+      }
+      #video_recorder_menu{
+        padding: 10px;
+      }
+      #modal_window_1{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.5 ) ;
+      }
+
+      .modal_window .outer_container{
+        width: 640px;
+        height: 480px;
+        transform: translate( -50%, -50%);
+        background: #374151;
+        border-radius: 5px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border: 1px #ccc solid;
+      }
+
+      .modal_window .inner_container{
+        width: 640px;
+        height: 480px;
+        position: relative;
+      }
+
+      #processing_line{
+        width: 620px;
+        height: 20px;
+        margin: 10px;
+        position: relative;
+        background-color: #999;
+      }
+
+      #processing_line_inner{
+        height: 20px;
+        background-color:#659eb8 ;
+      }
+
+      #processing_image_container{
+        width: 640px;
+        height: 400px;
+        position: relative;
+      } 
+
+      #processing_image_display, #MP4_Recorder_canvas{
+        max-width: 640px;
+        max-height: 350px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50% );
+      }
+
+      #processing_line_counter{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 15;
+        transform: translate(-50%, -50% );
+      }
+
+      #modal_window_1_close_button{
+        width: 20px;
+        height: 20px;
+        color: #eee;
+        background: #374151;
+        border: 1px #6a6a6a solid;
+        cursor: pointer;
+        position: absolute;
+        right: 4px;
+        top: -11px;
+        font-size: 25px;
+        text-align: center;
+        line-height: 16px;
+        padding: 5px;
+        border-radius: 5px;
+      }
+      #modal_window_1_close_button:hover{
+        background: #505866;
+      }
+
+      h3{
+        color: #ccc;
+      }
+      
+      a{
+        color: #00ffff;
+      }
+      a:hover{
+        color: #deb887;
+      }
+      a:active{
+        color: #00ffff;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="modal_window_1" class="modal_window hidden">
+      <div class="outer_container">
+        <div class="inner_container">
+          <div id="modal_window_1_close_button" class="hidden">x</div>
+          <h3 style="width: 100%; text-align: center;">img processing</h3>
+          <div id="processing_line">
+            <div id="processing_line_inner"></div>
+            <div id="processing_line_counter"></div>
+          </div><br>
+          <div id="processing_image_container">        
+            <img id="processing_image_display" src="https://tnormandao.github.io/imgs_to_html_gallery/" alt="">
+            <canvas class="hidden" id="MP4_Recorder_canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="global_container">
+      <h3> Convert images into single ".html" file gallery </h3>
+      <h4 style="color:#999;"> also will save metadatta from a1111 generated files </h4>
+      quality : 
+      <input id="jpg_quality" type="range" min="0.01" max="1" step="0.01" value="0.2" style="width:140px"> : 
+      <input id="jpg_quality_num" type="number" min="0.01" max="1" step="0.01" value="0.2" style="width:60px"> |
+      resize :
+      <input id="jpg_resize" type="range" min="0.1" max="1" step="0.1" value="1.0" style="width:80px"> : 
+      <div id="jpg_resize_num" style="display: inline-block;width:40px">1</div> |
+      <span title="add specific size for resizer, more preority than size range element">
+        set size:
+      </span> 
+      <input type="checkbox" id="specific_resize"> 
+      <span id="specific_resize_container" class="hidden">
+        x: <input id="specific_resize_x" type="number" step="1" value="512" style="width: 80px;"> 
+        y: <input id="specific_resize_y" type="number" step="1" value="512" style="width: 80px;">
+      </span> | 
+      <label id="load_files_label" for="load_files"> select images </label>
+      <input type="file" id="load_files" multiple="" style="display: none;">  | 
+      add to the end? <input title="new images will be added to the end of current gallery instead replace it" type="checkbox" id="add_images_over_gallery">
+      <br>
+      <hr>
+      create mp4?: <input id="video_recorder_switcher" type="checkbox">
+      <hr>
+      <div id="video_recorder_menu" class="hidden">
+        width: <input type="number" id="record_video_width" value="512" min="256" max="1024" step="1"> 
+        height: <input type="number" id="record_video_height" value="512" min="256" max="1024" step="1"> 
+        frame rate: <input type="number" id="record_video_fps" value="12" min="0.01" max="60" step="0.1"> 
+        <button id="convert_video">convert gallery to mp4</button> <span id="converter_processed_frames"></span><br>
+        <a href="https://tnormandao.github.io/imgs_to_html_gallery/" id="get_result_gallery_mp4"> download result gallery mp4 </a> | 
+        <button id="test_video">test video in popup</button>
+      </div>
+      <h4 style="color:#999;">
+        <a href="https://tnormandao.github.io/imgs_to_html_gallery/" id="get_result_gallery"> download result gallery html </a> | 
+        <button id="test_gallery"> test gallery in popup window </button>
+      </h4>
+      <h3> 
+        html_gallery inspector 
+        <small style="color:#999;"> inspect and edit before download html_gallery </small> 
+        <span id="processed"></span>
+      </h3>
+      <div id="inspector_container">
+        <div id="inspect_gallery">
+        </div>
+        <div id="inspector_thumbs_box">
+          <input id="thubms_size_control" type="range" min="2" max="9" step="1" value="6">
+          <div id="switch_include_all" title="include all"> + all</div> 
+          <div title="exclude all" id="switch_exclude_all">- all</div>
+          <div id="thumbs_list"></div>
+        </div>
+      </div>
+      <a href="https://tnormandao.github.io/imgs_to_html_gallery/" style="color: #fff; opacity: 0.3;" id="download_data_as_json">get gallery json</a> 
+      <label class="label_button" for="replace_by_json">replace by gallery json</label> 
+      <input id="replace_by_json" type="file" accept=".json" style="display: none;"> 
+      <label class="label_button" for="concat_by_json">concat by gallery json</label> 
+      <input id="concat_by_json" type="file" accept=".json" style="display: none;"> 
+      <label class="label_button" for="extract_from_html">extract html and concat</label> 
+      <input id="extract_from_html" type="file" accept=".html" style="display: none;"> 
+      <button id="download_images_zip"> download images as zip archive </button> 
+    </div>
+
+    <script>
+
+        let CROSSFRAME_TRANSITION_ENABLED = true;
+        class MP4_Recorder {
+
+          constructor( config = {} ){
+
+            this.fps = config.fps || 30;
+
+            this.width = config.width || 768;
+            this.height = config.height || 768;
+
+            this.can = document.getElementById('MP4_Recorder_canvas');
+            this.can.width = this.width;
+            this.can.height = this.height;
+            this.ctx = this.can.getContext('2d');
+
+            this.can2 = document.createElement( 'canvas' );
+            this.ctx2 = this.can2.getContext('2d');
+
+            this.videoStream = null;
+            this.mediaRecorder = null;
+
+            this.chunks = [];
+
+          }
+
+          init(){
+            this.videoStream = this.can.captureStream(60);
+            this.mediaRecorder = new MediaRecorder(this.videoStream, { mimeType:  'video/webm;codecs=h264' });
+            this.mediaRecorder.width    = this.width;
+            this.mediaRecorder.height   = this.height;
+            this.mediaRecorder.ondataavailable = (e) => { 
+              this.addData(e.data); 
+            }
+            this.mediaRecorder.onstop = function(e) {
+
+            }
+          }
+
+          start(){
+            this.init();
+            this.mediaRecorder.start();
+          }
+
+          stop(){
+            this.mediaRecorder.stop();
+          }
+
+          addData( data ){
+            this.chunks.push(data);
+          }
+
+          finally(){
+            this.stop();
+            return new Promise( ( resolve, reject ) => {
+              setTimeout( () => {
+                const blob = new Blob( this.chunks, {  
+                  // 'type': 'video/webm;codecs=h264'
+                  type: 'video/mp4'
+                 });
+                resolve( blob );
+              }, 100 );
+            });
+          }
+
+          calculateSizeProps( img ){
+
+            const aspect = ( img.width > img.height ) ?  this.width / img.width : this.height / img.height;
+            const imgW = img.width * aspect;
+            const imgH = img.height * aspect;
+            const imgX = ( this.width / 2 ) - ( imgW / 2 );
+            const imgY = ( this.height / 2 ) - ( imgH / 2 );
+
+            return {
+              aspect,
+              x: imgX,
+              y: imgY,
+              w: imgW,
+              h: imgH,
+            }
+
+          }
+
+          async addFrame( img, prevImage ){
+
+            const minimalFrmaeLength = 17;
+            const currentFrameLength = 1000 / this.fps;
+            let transitionCount = 0;
+
+            if( CROSSFRAME_TRANSITION_ENABLED && prevImage ){
+              transitionCount = Math.floor( currentFrameLength / minimalFrmaeLength );
+            }
+
+
+            if( !transitionCount ){
+              
+              const imgOpts = this.calculateSizeProps( img );
+              this.ctx.fill = '#000000';
+              this.ctx.fillRect( 0, 0, this.width, this.height );
+              this.ctx.drawImage( img,
+                  0, 0, img.width, img.height,
+                  imgOpts.x, imgOpts.y, imgOpts.w, imgOpts.h,
+              );
+
+            } else {
+
+              const imgPrevOpts = this.calculateSizeProps( prevImage );
+              const imgOpts = this.calculateSizeProps( img );
+
+              this.can2.width = this.can.width;
+              this.can2.height = this.can.height;
+
+              for( let i = 0; i < transitionCount; i++ ){
+
+                const _alpha = i / transitionCount;
+                
+                await new Promise( ( resolve, reject ) => {
+
+                  this.ctx.globalAlpha = 1.0;
+                  this.ctx.fill = '#000000';
+                  this.ctx.fillRect( 0, 0, this.width, this.height );
+                  this.ctx.drawImage( prevImage,
+                      0, 0, prevImage.width, prevImage.height,
+                      imgPrevOpts.x, imgPrevOpts.y, imgPrevOpts.w, imgPrevOpts.h,
+                  );
+
+                  this.ctx2.fill = '#000000';
+                  this.ctx2.fillRect( 0, 0, this.width, this.height );
+                  this.ctx2.drawImage( img,
+                      0, 0, img.width, img.height,
+                      imgOpts.x, imgOpts.y, imgOpts.w, imgOpts.h,
+                  );
+                  this.ctx.globalAlpha = _alpha;
+                  this.ctx.drawImage( this.can2,
+                      0, 0  );
+
+
+                  this.ctx.globalAlpha = 1.0;
+
+                  setTimeout( () => {
+                    resolve();
+                  }, currentFrameLength / transitionCount );
+                } );
+              }
+            }
+
+          }
+
+        };
+
+        const pngMetadata = new function(){
+
+          // source code
+          // https://github.com/kujirahand/node-png-metadata
+          var metadata = {};
+
+          // var fs = require('fs');
+
+          metadata.PNG_SIG = String.fromCharCode(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
+
+          // read pngfile by binary
+          metadata.readFileSync = function (path) {
+            // var buf = fs.readFileSync(path, "binary");
+            // return buf;
+          };
+          metadata.writeFileSync = function (path, bin) {
+            // fs.writeFileSync(path, bin, "binary");
+          };
+
+          // check PNG signature
+          metadata.isPNG = function (s) {
+            var sig = s.substr(0, 8);
+            return (sig == metadata.PNG_SIG);
+          };
+
+          metadata.splitChunk= function (s) {
+            // read signature
+            var sig = s.substr(0, 8);
+            if (!metadata.isPNG(sig)) return false;
+            s = s.substr(8); // chomp sig
+            var chunklist = [];
+            // read chunk list
+            while (s != '') {
+              var chunk = {};
+              // read chunk size
+              var size = stoi(s.substr(0, 4));
+              if (size < 0) {
+                // If the size is negative, the data is likely corrupt, but we'll let
+                // the caller decide if any of the returned chunks are usable.
+                // We'll move forward in the file with the minimum chunk length (12 bytes).
+                size = 0;
+              }
+              var buf = s.substr(0, size + 12);
+              s = s.substr(size + 12); // delete this chunk
+              // read chunk data
+              chunk.size = size;
+              chunk.type = buf.substr(4, 4);
+              chunk.data = buf.substr(8, size);
+              chunk.crc  = stoi(buf.substr(8 + size, 4));
+              // add chunk
+              chunklist.push(chunk);
+            }
+            return chunklist;
+          };
+
+          metadata.joinChunk = function (chunklist) {
+            var pf = metadata.PNG_SIG;
+            for (var i in chunklist) {
+              var chunk = chunklist[i];
+              var buf = "";
+              buf += itos(chunk.size, 4);
+              buf += chunk.type;
+              buf += chunk.data;
+              buf += itos(chunk.crc, 4);
+              pf += buf;
+            }
+            return pf;
+          };
+
+          metadata.createChunk = function (type, data) {
+            var c = {};
+            c.type = type;
+            c.data = data;
+            c.size = data.length;
+            c.crc  = crc32(type+data);
+            return c;
+          };
+
+          metadata.itos = itos;
+          function itos(v, size) {
+            var a = [];
+            var t = size - 1;
+            while (t >= 0) {
+              var c = v & 0xFF;
+              a[t--] = c;
+              v = v >> 8;
+            }
+            a = a.map(function(v) {
+              return String.fromCharCode(v);
+            });
+            return a.join('');
+          }
+
+          metadata.stoi = stoi;
+          function stoi(s) {
+            var v = 0;
+            for (var i = 0; i < s.length; i++) {
+              var c = s.charCodeAt(i);
+              v = (v << 8) | (c & 0xFF);
+            }
+            return v;
+          }
+
+          function ToInt32(x) {
+            return x | 0;
+          }
+          function ToUInt32(x) {
+            return x >>> 0;
+          }
+
+          function crc32(str) {
+            var hexTable = [0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3, 0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7, 0x136C9856, 0x646BA8C0, 0xFD62F97A, 0x8A65C9EC, 0x14015C4F, 0x63066CD9, 0xFA0F3D63, 0x8D080DF5, 0x3B6E20C8, 0x4C69105E, 0xD56041E4, 0xA2677172, 0x3C03E4D1, 0x4B04D447, 0xD20D85FD, 0xA50AB56B, 0x35B5A8FA, 0x42B2986C, 0xDBBBC9D6, 0xACBCF940, 0x32D86CE3, 0x45DF5C75, 0xDCD60DCF, 0xABD13D59, 0x26D930AC, 0x51DE003A, 0xC8D75180, 0xBFD06116, 0x21B4F4B5, 0x56B3C423, 0xCFBA9599, 0xB8BDA50F, 0x2802B89E, 0x5F058808, 0xC60CD9B2, 0xB10BE924, 0x2F6F7C87, 0x58684C11, 0xC1611DAB, 0xB6662D3D, 0x76DC4190, 0x01DB7106, 0x98D220BC, 0xEFD5102A, 0x71B18589, 0x06B6B51F, 0x9FBFE4A5, 0xE8B8D433, 0x7807C9A2, 0x0F00F934, 0x9609A88E, 0xE10E9818, 0x7F6A0DBB, 0x086D3D2D, 0x91646C97, 0xE6635C01, 0x6B6B51F4, 0x1C6C6162, 0x856530D8, 0xF262004E, 0x6C0695ED, 0x1B01A57B, 0x8208F4C1, 0xF50FC457, 0x65B0D9C6, 0x12B7E950, 0x8BBEB8EA, 0xFCB9887C, 0x62DD1DDF, 0x15DA2D49, 0x8CD37CF3, 0xFBD44C65, 0x4DB26158, 0x3AB551CE, 0xA3BC0074, 0xD4BB30E2, 0x4ADFA541, 0x3DD895D7, 0xA4D1C46D, 0xD3D6F4FB, 0x4369E96A, 0x346ED9FC, 0xAD678846, 0xDA60B8D0, 0x44042D73, 0x33031DE5, 0xAA0A4C5F, 0xDD0D7CC9, 0x5005713C, 0x270241AA, 0xBE0B1010, 0xC90C2086, 0x5768B525, 0x206F85B3, 0xB966D409, 0xCE61E49F, 0x5EDEF90E, 0x29D9C998, 0xB0D09822, 0xC7D7A8B4, 0x59B33D17, 0x2EB40D81, 0xB7BD5C3B, 0xC0BA6CAD, 0xEDB88320, 0x9ABFB3B6, 0x03B6E20C, 0x74B1D29A, 0xEAD54739, 0x9DD277AF, 0x04DB2615, 0x73DC1683, 0xE3630B12, 0x94643B84, 0x0D6D6A3E, 0x7A6A5AA8, 0xE40ECF0B, 0x9309FF9D, 0x0A00AE27, 0x7D079EB1, 0xF00F9344, 0x8708A3D2, 0x1E01F268, 0x6906C2FE, 0xF762575D, 0x806567CB, 0x196C3671, 0x6E6B06E7, 0xFED41B76, 0x89D32BE0, 0x10DA7A5A, 0x67DD4ACC, 0xF9B9DF6F, 0x8EBEEFF9, 0x17B7BE43, 0x60B08ED5, 0xD6D6A3E8, 0xA1D1937E, 0x38D8C2C4, 0x4FDFF252, 0xD1BB67F1, 0xA6BC5767, 0x3FB506DD, 0x48B2364B, 0xD80D2BDA, 0xAF0A1B4C, 0x36034AF6, 0x41047A60, 0xDF60EFC3, 0xA867DF55, 0x316E8EEF, 0x4669BE79, 0xCB61B38C, 0xBC66831A, 0x256FD2A0, 0x5268E236, 0xCC0C7795, 0xBB0B4703, 0x220216B9, 0x5505262F, 0xC5BA3BBE, 0xB2BD0B28, 0x2BB45A92, 0x5CB36A04, 0xC2D7FFA7, 0xB5D0CF31, 0x2CD99E8B, 0x5BDEAE1D, 0x9B64C2B0, 0xEC63F226, 0x756AA39C, 0x026D930A, 0x9C0906A9, 0xEB0E363F, 0x72076785, 0x05005713, 0x95BF4A82, 0xE2B87A14, 0x7BB12BAE, 0x0CB61B38, 0x92D28E9B, 0xE5D5BE0D, 0x7CDCEFB7, 0x0BDBDF21, 0x86D3D2D4, 0xF1D4E242, 0x68DDB3F8, 0x1FDA836E, 0x81BE16CD, 0xF6B9265B, 0x6FB077E1, 0x18B74777, 0x88085AE6, 0xFF0F6A70, 0x66063BCA, 0x11010B5C, 0x8F659EFF, 0xF862AE69, 0x616BFFD3, 0x166CCF45, 0xA00AE278, 0xD70DD2EE, 0x4E048354, 0x3903B3C2, 0xA7672661, 0xD06016F7, 0x4969474D, 0x3E6E77DB, 0xAED16A4A, 0xD9D65ADC, 0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5, 0x47B2CF7F, 0x30B5FFE9, 0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D]
+            var crc = 0 ^ (-1);
+            for (var i = 0; i < str.length; i++) {
+              crc = (crc >>> 8) ^ hexTable[(crc ^ str.charCodeAt(i)) & 0xFF];
+            }
+            return (crc ^ (-1)) >>> 0;
+          }
+
+          return metadata;
+
+        };
+
+        const HTML_TEMPLATE = `
+        <html>
+              <head>
+                <style>
+                  body{
+                    font-family: monospace;
+                    margin: 0;
+                    background: #374151;
+                    color: #eee;
+                    padding: 10px;
+                  }
+                  #text_info{
+                    width: 512px;
+                    float: left;
+                  }
+                  #show_faworites{
+                    display: inline-block;
+                    width: 20px;
+                    height: 20px;
+                    font-size: 22px;
+                    line-height: 20px;
+                    color: faea0d;
+                    cursor: pointer;
+                  }
+                  .info_area{
+                    width: 768px;
+                    height: 100px;
+                    margin-top: 1px;
+                  }
+                  #change_thumb_size{
+                    width: 512px;
+                  }
+                  #global_gallery{
+                    background-color: #000;
+                    width: 512px;
+                    height: 768px;
+                    overflow-y: scroll;
+                  }                  
+                  #global_gallery div{
+                    width: 64px;
+                    height: 64px;
+                    margin: 2px;
+                    cursor: pointer;
+                    float: left;
+                  }
+                  #global_gallery div img{
+                    max-width: 64px;
+                    max-height: 64px;
+                  }
+                  #frame_counter{
+                    display: inline-block;
+                    width: 90px;
+                    text-align: center;
+                  }
+                  #frame_per_second{
+                    width: 50px;
+                  }
+                  #search_field{
+                    width: 195px;
+                  }
+                  .display_div{
+                    width: 768px;
+                    height: 768px;
+                    position: relative;
+                    float: left;
+                  }
+                  .display_div_image {
+                    width: 768px;
+                    height: 486px;
+                    float: left;
+                    position: relative;
+                  }
+                  .display_div_image img{
+                    max-width: 100%; 
+                    max-height: 100%;
+                    /* width: auto; */
+                    /* height: auto; */
+                    position: absolute;
+                    left: 50%;
+                    top:50%;
+                    transform: translate( -50%, -50% );
+                  }
+                  #slide, #change_thumb_size{
+                    user-select: none;
+                  }
+                </style>
+              </head>
+              <body>
+                <div style="width:1282px;">
+                  <span id="frame_counter"></span>
+                  <button id="play_frames">play</button> | fps: <input value="1" id="frame_per_second" type="number" min="0.1" max="60" step="0.1" /> | 
+                  <input type="text" id="search_field" placeholder="search" > |  
+                  <div title="show only favorites" id="show_faworites">&star;</div> |
+                  <button id="framecontrol_prev">&#5130;</button><button id="framecontrol_next">&#5125;</button>|<input id="slide" style="width: 690px;" type="range" min="0" max="0.9999" step="0.0001" value="0"><br>
+                </div>
+                <div style="width:1282px;">
+                  <div id="text_info">
+                    <input id="change_thumb_size" type="range" min="64" max="240" step="1" value="64">
+                    <div id="global_gallery"></div>
+                  </div>
+                  <div class="display_div">
+                    <div class="display_div_image">
+                      <img id="display">
+                    </div>
+                    <textarea class="info_area" id="text_positive"></textarea>
+                    <textarea class="info_area" id="text_negative"></textarea>
+                    <textarea class="info_area" id="text_config"></textarea>
+                  </div>
+                </div>
+                <SCRPT>
+
+                  /*DATA_START*/
+                  const f = FRAMES_JSON;
+                  const t = TEXT_JSON;
+                  /*DATA_END*/
+
+                  let searchEngine = null;
+                  let player = null;
+                  let ONLY_FAVORITES = false;
+                  const $$ = (id) => { return document.getElementById( id ); };
+                  let CURRENT_FRAME = 0;
+                  const setFrame = ( frameIndex, updateSlider ) => {
+                    CURRENT_FRAME = frameIndex;
+                    const { f, t } = searchEngine.getFiltered( frameIndex );
+                    $$('slide').value = ( frameIndex + 1 ) / searchEngine.filtered.length;
+                    $$('display').src = f; 
+                    $$('text_positive').innerText = t.positive;
+                    $$('text_negative').innerText = t.negative;
+                    $$('text_config').innerText = t.config;
+                    $$('frame_counter').innerText = (1 + frameIndex) + ' : ' + searchEngine.filtered.length;
+                  };
+
+                  window.onload = ()=> { 
+                    $$('slide').addEventListener( 'input', () => { 
+                      const frameIndex = Math.floor( searchEngine.filtered.length * $$('slide').value );
+                      setFrame(frameIndex);
+                    } ); 
+                    player = {
+                      playButton: $$('play_frames'),
+                      framecontrol_prev: $$('framecontrol_prev'),
+                      framecontrol_next: $$('framecontrol_next'),
+                      active: false,
+                      speed: 1,
+                      player: null,
+                      stop: function(){
+                          $$('play_frames').innerText = 'play';
+                          if( this.player ) clearTimeout( this.player );
+                      },
+                      play: function(){
+                        this.active = !this.active;
+                        if( this.active ){
+                          $$('play_frames').innerText = 'pause';
+                          this.speed = $$('frame_per_second').value;
+                          this.next();
+                        } else {
+                          this.stop();
+                        }
+                      },
+                      framePrev: function(){
+                        if( searchEngine.filtered[ CURRENT_FRAME - 1 ] ){
+                            setFrame( CURRENT_FRAME - 1, true );
+                        }
+                      },
+                      frameNext: function(){
+                        if( searchEngine.filtered[ CURRENT_FRAME + 1 ] ){
+                            setFrame( CURRENT_FRAME + 1, true );
+                        }
+                      },
+                      next: function(){
+                        this.speed = $$('frame_per_second').value;
+                        const nextInterval = 1000 / this.speed;
+                        this.player = setTimeout( () => {
+                          if( CURRENT_FRAME + 1 < searchEngine.filtered.length ){
+                            setFrame( CURRENT_FRAME + 1, true );
+                            this.next();
+                          } else {
+                            this.play();
+                          }
+                        }, nextInterval );
+                      },
+                      init: function(){
+                        this.playButton.addEventListener( 'click', () => { 
+                          this.play() 
+                        } );
+                        this.framecontrol_prev.addEventListener( 'click', () => { 
+                          this.stop(); 
+                          this.framePrev(); 
+                        } );
+                        this.framecontrol_next.addEventListener( 'click', () => { 
+                          this.stop(); 
+                          this.frameNext(); 
+                        } );
+                      }
+                    };
+                    player.init();
+                    const globalGalleryUpdate = () => {
+                      const frames = searchEngine.filtered;
+                      const GG = $$('global_gallery');
+                      const sizeVal = $$('change_thumb_size').value;
+                      GG.innerHTML = "";
+                      for( let i = 0; i < frames.length; i++ ){
+                        const filteredFrame = searchEngine.getFiltered( i );
+                        const div_ = document.createElement('div');
+                        div_.addEventListener( 'click', () => {
+                          setFrame( i );
+                        } );
+                        div_.title = filteredFrame.t.positive;
+                        div_.style.width = sizeVal; 
+                        div_.style.height = sizeVal;
+                        const img = new Image();
+                        img.style.maxWidth = sizeVal;                 
+                        img.style.maxHeight = sizeVal;
+                        img.src = filteredFrame.f;
+                        div_.appendChild( img );
+                        GG.appendChild( div_ );
+                      } 
+                    };
+                    searchEngine = {
+                      search_field: $$('search_field'),
+                      filtered: [],
+                      query: '',
+                      search: function(){
+                        player.stop();
+                        CURRENT_FRAME = 0;
+                        this.filtered = [];
+                        for( let i = 0; i < t.length; i++ ){
+                          const isFavorite = ONLY_FAVORITES ? t[i].favorite : true;
+                          if( this.query.length ){
+                              if( t[i].positive.includes( this.query ) && isFavorite ){
+                                this.filtered.push( i );
+                              }
+                          } else {
+                            if( isFavorite ) this.filtered.push( i );
+                          }
+                        }
+                        globalGalleryUpdate();
+                        setFrame( 0 );
+                      },
+                      getFiltered: function( filteredIndex ){
+                        const realIndex = this.filtered[ filteredIndex ];
+                        if(!realIndex && realIndex !== 0 ) {
+                          return { 
+                            f: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBmRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAAQAAAATgAAAAAAAABgAAAAAQAAAGAAAAABcGFpbnQubmV0IDUuMC45AP/bAEMAAgEBAQEBAgEBAQICAgICBAMCAgICBQQEAwQGBQYGBgUGBgYHCQgGBwkHBgYICwgJCgoKCgoGCAsMCwoMCQoKCv/bAEMBAgICAgICBQMDBQoHBgcKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCv/AABEIAAMAAwMBEgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APzJ0DQLG8sZJpp71WW9uU/dalPGMLO6jhXAzgDLdWOSSSSSV/RmDo0ZUW3FP3p9F0nJL7kfzZja1aNZKMmvdh1fWEW/vep//9k=', 
+                            t: { positive: 'element not found', negative: '', config: '' } 
+                          };
+                        }
+                        return {
+                          f: f[ realIndex ],
+                          t: t[ realIndex ],
+                        };
+                      },
+                      init: function(){
+                        this.search_field.addEventListener( 'input', () => {
+                          this.query = this.search_field.value;
+                          this.search();
+                        } );
+                        this.search();
+                      }
+                    };
+                    $$('show_faworites').addEventListener( 'click', () => {
+                      ONLY_FAVORITES = !ONLY_FAVORITES;
+                      if( ONLY_FAVORITES ){
+                        $$('show_faworites').classList.add('active');
+                        $$('show_faworites').innerHTML =  "&starf;";
+                      } else {
+                        $$('show_faworites').classList.remove('active');
+                        $$('show_faworites').innerHTML =  "&star;";
+                      }
+                      searchEngine.search();
+                    } );
+                    searchEngine.init();
+                    $$('change_thumb_size').addEventListener( 'change', () => {
+                        globalGalleryUpdate();
+                    } );
+                  };
+                </SCRPT>
+              </body>
+            </html>
+        `;
+
+        let FRAMES_BUFFER_ARRAY = [];
+        let TEXT_BUFFER_ARRAY = [];
+        let TOTAL_BASIC_SIZE = 0;
+        let TOTAL_SIZE_AFTER_COMPRESS = 0;
+        let SPECIFIC_RESIZE_ENABLED = false;
+
+        function dateNow(){
+          const date = new Date();
+          let year = date.getFullYear();
+          let month = ( date.getMonth() + '' ).length === 1 ? '0' + ( date.getMonth() + 1 ) : date.getMonth() + 1;
+          let day = ( date.getDate() + '' ).length === 1 ? '0' + date.getDate(): date.getDate();
+          let hours = ( date.getHours() + '' ).length === 1 ? '0' + date.getHours(): date.getHours();
+          let minutes = ( date.getMinutes() + '' ).length === 1 ? '0' + date.getMinutes(): date.getMinutes();
+          let seconds = ( date.getSeconds() + '' ).length === 1 ? '0' + date.getSeconds(): date.getSeconds();
+          const combined_string = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+          return combined_string;
+        }
+
+        window.onload = () => {
+
+          const $$ = (id) => { return document.getElementById( id ); };
+
+          const processingCanvas = document.createElement('canvas');
+          const processingContext = processingCanvas.getContext('2d');
+          const processingImage = new Image();
+
+          const processSinglePicture = async ( nextDataPack, FRAMES_BUFFER_ARRAY, TEXT_BUFFER_ARRAY ) => {
+            return new Promise( async ( resolveProcessing, rejectProcessing ) => {
+              const metadata = pngMetadata.splitChunk( nextDataPack.buffer );
+               let textOptions = {
+                positive: '',
+                negative: '',
+                config: '',
+                include: true,
+                favorite: false,
+              };
+              if( metadata && metadata[1] && metadata[1].type == 'tEXt' ){
+                const dataArr = metadata[1].data.split('\n');
+                let _state = 'positive'; // positive | negative | config
+                for( let i = 0; i < dataArr.length; i++ ){
+                  if( dataArr[i] === '' ){ continue; }        
+                  if( dataArr[i].includes( 'parameters\x00' ) ){ _state = 'positive'; dataArr[i] = dataArr[i].replace('parameters\x00', '' ); }
+                  if( dataArr[i].includes( 'Negative prompt:' ) ){ _state = 'negative'; dataArr[i] = dataArr[i].replace('Negative prompt:', '' ); }
+                  if( dataArr[i].includes( 'Steps: ' ) ){ _state = 'config'; } 
+                  if( _state === 'positive' ){
+                    textOptions.positive += ' ' + dataArr[i];
+                  } else if(  _state === 'negative'  ) {
+                    textOptions.negative += ' ' + dataArr[i];
+                  } else if(  _state === 'config'  ) {
+                    textOptions.config += ' ' + dataArr[i];
+                  }
+                }
+                TEXT_BUFFER_ARRAY.push( textOptions );
+              } else {
+                TEXT_BUFFER_ARRAY.push( textOptions );
+              }
+
+              await new Promise( async ( resolveImageConversion, rejectImageConversion )=>{
+                const fr = new FileReader();
+                fr.onload = () => {
+                  processingImage.onload = () => {
+                    const nextImg = processingImage;
+                    let _width, _height;
+                    if( SPECIFIC_RESIZE_ENABLED ){
+                      _width = Math.ceil( $$('specific_resize_x').value );
+                      _height = Math.ceil( $$('specific_resize_y').value );
+                    } else {
+                      const resize_factor = parseFloat( $$('jpg_resize').value ) || 1;
+                      _width = Math.ceil( nextImg.width * resize_factor );
+                      _height = Math.ceil( nextImg.height * resize_factor );
+                    }
+
+
+                    processingCanvas.width = _width;
+                    processingCanvas.height = _height;
+                    processingContext.drawImage( 
+                      nextImg,
+                      0, 0, nextImg.width, nextImg.height,
+                      0, 0, _width, _height
+                    );
+                    const quality = parseFloat( $$('jpg_quality').value );
+                    const nextDataUrl = processingCanvas.toDataURL( "image/jpeg", quality );
+                    TOTAL_SIZE_AFTER_COMPRESS += nextDataUrl.length;
+                    FRAMES_BUFFER_ARRAY.push( nextDataUrl );
+                    resolveImageConversion();
+                  };
+                  processingImage.src = fr.result;
+                };
+                fr.readAsDataURL( nextDataPack.file );
+              } );
+
+              resolveProcessing();
+            } );
+          };
+
+          // modal_window_1_close_button
+          const ProcessingModalWindow = {
+            window: $$('modal_window_1'),
+            innerLine: $$('processing_line_inner'),
+            imageLineCounter: $$('processing_line_counter'),
+            imageDisplay: $$('processing_image_display'),
+            videoRecorderDisplay: $$('MP4_Recorder_canvas'),
+            processedInfo: $$('processed'),
+            closeButton: $$('modal_window_1_close_button'),
+            totalFrames: 0,
+            currentFrame: 0,
+            options: {}, 
+            prepare: function(){
+              this.closeButton.addEventListener( 'click', () => {
+                this.close(); 
+              });
+            },
+            init: function( totalFrames = 0, options = {} ){
+              this.options = options;
+              this.totalFrames = totalFrames;
+              this.window.classList.remove('hidden');
+              this.closeButton.classList.add('hidden');
+              this.innerLine.style.width = `${0}%`;
+              if( this.options.videorecorder ){
+                this.imageDisplay.classList.add('hidden');
+                this.videoRecorderDisplay.classList.remove('hidden');
+              }
+            },
+            addNext: function( index, image ) {
+              this.currentFrame = index;
+              this.innerLine.style.width = `${ ( index / this.totalFrames ) * 100 }%`;
+              this.imageLineCounter.innerText = index + ' : ' + this.totalFrames;
+              this.processedInfo.innerText = index + ' : ' + this.totalFrames;
+              if( this.options.videorecorder ){
+
+              } else {
+                this.imageDisplay.src = image;
+              }
+            },
+            finish: function(){
+              this.closeButton.classList.remove('hidden');
+            },
+            close: function(){
+              if( this.options.videorecorder ){
+                this.imageDisplay.classList.remove('hidden');
+                this.videoRecorderDisplay.classList.add('hidden');
+              }
+              this.options = {};
+              this.window.classList.add('hidden');
+            }
+          }
+          ProcessingModalWindow.prepare();
+
+          const processFiles = async ( files ) => {
+            const baseForWork = [];
+            TOTAL_BASIC_SIZE = 0;
+            TOTAL_SIZE_AFTER_COMPRESS = 0;
+            for( const nextFile of files ){
+              await new Promise( ( resolve, reject ) => {
+                const reader = new FileReader()
+                reader.onload = () => {
+                  const buffer = reader.result;
+                  const { name, type, size,} = nextFile;
+                  TOTAL_BASIC_SIZE += size;
+                  baseForWork.push( {
+                    file: nextFile,
+                    buffer,
+                    name,
+                    type,
+                    size,
+                  } );
+                  resolve();
+                };
+                reader.readAsBinaryString( nextFile );
+              } );
+            }
+            ProcessingModalWindow.init( baseForWork.length );
+            let next = 0;
+            for( const nextDataPack of baseForWork ){
+              const nextData = await processSinglePicture( nextDataPack, FRAMES_BUFFER_ARRAY, TEXT_BUFFER_ARRAY );
+              next++;
+              ProcessingModalWindow.addNext( next, FRAMES_BUFFER_ARRAY[ next - 1 ] );
+            }
+            ProcessingModalWindow.finish();
+
+            changeThumbsSize();
+          };
+
+          let TEMPLATE = '';
+          let WIN_URL = '';
+
+          const updateTemplate = async ( openPopup ) => {
+
+            TEMPLATE = HTML_TEMPLATE + '';
+
+            const FRAMES_FILTERED = [];
+            const TEXT_FILTERED = [];
+
+            for( let i = 0; i < TEXT_BUFFER_ARRAY.length; i++ ){
+              if( TEXT_BUFFER_ARRAY[i].include ){
+                FRAMES_FILTERED.push( FRAMES_BUFFER_ARRAY[ i ] );
+                TEXT_FILTERED.push( TEXT_BUFFER_ARRAY[ i ] );
+              }
+            }
+
+            TEMPLATE = TEMPLATE.replaceAll( 'SCRPT', 'script' );
+            TEMPLATE = TEMPLATE.replace( 'FRAMES_JSON', JSON.stringify( FRAMES_FILTERED, null, 2 ) );
+            TEMPLATE = TEMPLATE.replace( 'TEXT_JSON', JSON.stringify( TEXT_FILTERED, null, 2 ) );
+
+            updateGallerHTMLDonwloadLink();
+          };
+
+          const updateGallerHTMLDonwloadLink = () => {
+            const galleryBlob = new Blob([ TEMPLATE ], { type: "text/html" });
+            WIN_URL = URL.createObjectURL( galleryBlob );
+            const a = $$("get_result_gallery");
+            a.href = WIN_URL;
+            a.download = dateNow() + '_gallery.html';
+          };
+
+          const openPopup = () => {
+            updateTemplate();
+            const _width = 1320;
+            const _height = 820;
+            const xPosition = (screen.width/2) - _width/2;
+            const yPosition = (screen.height/2) - _height/2;
+            const win = window.open( 
+              WIN_URL, 
+              ` Compressed Gallery preview ${ dateNow() } `,`
+              toolbar=0,
+              location=0,
+              directories=no,
+              status=0,
+              menubar=0,
+              scrollbars=0,
+              resizable=no,
+              width=${ _width },
+              height=${ _height },
+              top=${yPosition},
+              left=${xPosition}
+              `);
+          }
+
+          const createInspectorModule = ( dataIndex ) => {
+            
+            const container = document.createElement('div');
+            container.classList.add('editable_container');
+            container.id = `inspector_key_${dataIndex}`;
+
+            const nextImage = new Image();
+            nextImage.src = FRAMES_BUFFER_ARRAY[ dataIndex ];
+            nextImage.classList.add('editable_img');
+            container.appendChild( nextImage );
+
+            const promptContainer = document.createElement('div');
+            promptContainer.classList.add('editable__prompt_container');
+            container.appendChild( promptContainer );
+
+            const posT = document.createElement('textarea');
+            posT.classList.add('editable_pos');
+            posT.value = TEXT_BUFFER_ARRAY[ dataIndex ].positive;
+            posT.addEventListener( 'input', () => { 
+              TEXT_BUFFER_ARRAY[ dataIndex ].positive = posT.value; 
+              // updateTemplate();
+            } );
+            promptContainer.appendChild( posT );
+
+            const negT = document.createElement('textarea');
+            negT.classList.add('editable_neg');
+            negT.value = TEXT_BUFFER_ARRAY[ dataIndex ].negative;
+            negT.addEventListener( 'input', () => { 
+              TEXT_BUFFER_ARRAY[ dataIndex ].negative = negT.value; 
+              // updateTemplate();
+            } );
+            promptContainer.appendChild( negT );
+
+            const cfgT = document.createElement('textarea');
+            cfgT.classList.add('editable_cfg');
+            cfgT.value = TEXT_BUFFER_ARRAY[ dataIndex ].config;
+            cfgT.addEventListener( 'input', () => { 
+              TEXT_BUFFER_ARRAY[ dataIndex ].config = cfgT.value; 
+              // updateTemplate();
+            } );
+            promptContainer.appendChild( cfgT );
+
+
+            return container;
+          };
+
+          $$('test_gallery').addEventListener( 'click', () => {
+            openPopup();
+          } );
+
+          $$("get_result_gallery").addEventListener( 'click', () => {
+            updateTemplate();
+          } );
+
+          const updateInspectorByFiles = () => {
+            $$( 'inspect_gallery' ).innerHTML = '';
+            for( let i = 0; i < FRAMES_BUFFER_ARRAY.length; i++ ){
+              const nextEditableInspectorModule = createInspectorModule( i );
+              $$( 'inspect_gallery' ).appendChild( nextEditableInspectorModule );
+            }
+          };
+
+          $$('load_files').addEventListener( 'change', async () => { 
+            const add_to_the_end = !!$$('add_images_over_gallery').checked;
+            if(!add_to_the_end){
+              FRAMES_BUFFER_ARRAY = [];
+              TEXT_BUFFER_ARRAY = [];
+            }
+            const files = $$('load_files').files;
+            await processFiles( files );
+            updateTemplate();
+            $$('load_files').value = null;
+            updateInspectorByFiles();
+          } ); 
+
+          $$('jpg_quality_num').addEventListener( 'input', () => {
+            if( $$('jpg_quality_num').value < $$('jpg_quality_num').min ){ $$('jpg_quality_num').value =  $$('jpg_quality_num').min; }
+            if( $$('jpg_quality_num').value > $$('jpg_quality_num').max ){ $$('jpg_quality_num').value =  $$('jpg_quality_num').max; }
+            $$('jpg_quality').value = $$('jpg_quality_num').value;
+          } );
+
+          $$('jpg_quality').addEventListener( 'input', () => {
+            $$('jpg_quality_num').value = $$('jpg_quality').value;
+          } );
+
+          $$('jpg_resize').addEventListener( 'input', () => {
+            $$('jpg_resize_num').innerText = $$('jpg_resize').value;
+          } );
+
+
+          let RECORDER_ACTIVE = !!$$('video_recorder_switcher').checked;
+          let VIDEO_SOURCE = null;
+          let VIDEO_BLOB = null;
+          let VIDEO_URL = null;
+          $$('video_recorder_switcher').addEventListener( 'input', () => {
+            RECORDER_ACTIVE = !!$$('video_recorder_switcher').checked;
+            if( RECORDER_ACTIVE ){
+              $$('video_recorder_menu').classList.remove('hidden');
+            } else {
+              $$('video_recorder_menu').classList.add('hidden');
+            }
+          } );
+
+          $$('convert_video').addEventListener( 'click', async () => {
+            if( RECORDER_ACTIVE ){
+
+              const _width = parseInt( $$('record_video_width').value );
+              const _height = parseInt( $$('record_video_height').value );
+              const _fps = parseFloat( $$('record_video_fps').value );
+
+              const nextRecorder = new MP4_Recorder( {
+                width: _width,
+                height: _height,
+                fps: _fps
+              } );
+              if( nextRecorder ){
+                nextRecorder.start();
+                ProcessingModalWindow.init( FRAMES_BUFFER_ARRAY.length, { videorecorder: true } );
+                let processed = 0;
+                let previouseImage = null;
+                for( const nextFrameDataURL of FRAMES_BUFFER_ARRAY ){
+                  await new Promise( ( next, reject ) => {
+                    const _img = new Image();
+                    _img.onload = () => { 
+                      nextRecorder.addFrame( _img, previouseImage );
+                      setTimeout( () => {
+                        processed++;
+                        ProcessingModalWindow.addNext( processed, FRAMES_BUFFER_ARRAY[ processed - 1 ] );
+                        previouseImage = _img;
+                        next();
+                      }, 1000 / _fps );
+                      }
+                    _img.src = nextFrameDataURL;
+                  } );
+                }
+                ProcessingModalWindow.finish();
+                nextRecorder.finally().then( ( blob ) => {
+                  VIDEO_BLOB = blob;
+                  const fr = new FileReader();
+                  fr.onload = () => {
+                    VIDEO_SOURCE = fr.result;
+                  };
+                  fr.readAsDataURL( blob );
+                });
+              }
+            }
+          } );
+
+          const VIDEO_VIEWER_TEMPLATE = `
+            <html>
+              <head>
+                <meta name="viewport" content="width=device-width">
+              </head>
+              <body>
+                <video controls="" autoplay="" name="media">
+                  <source src="__SOURCE_DATAURL__" type="video/mp4">
+                </video>
+              </body>
+            </html>
+          `;
+
+          $$('test_video').addEventListener( 'click', () => {
+            if( VIDEO_BLOB ){
+              if( VIDEO_URL ) URL.revokeObjectURL( VIDEO_URL );
+              VIDEO_URL = URL.createObjectURL( VIDEO_BLOB );
+              const _width = parseInt( $$('record_video_width').value );
+              const _height = parseInt( $$('record_video_height').value );
+              const xPosition = (screen.width/2) - _width/2;
+              const yPosition = (screen.height/2) - _height/2;
+              const _fps = parseFloat( $$('record_video_fps').value );
+              const win = window.open( 
+              VIDEO_URL, 
+              "Title2",`
+              toolbar=no,
+              location=no,
+              directories=no,
+              status=no,
+              menubar=no,
+              scrollbars=no,
+              resizable=no,
+              width=${ _width },
+              height=${ _height },
+              top=${yPosition},
+              left=${xPosition}
+              `);
+            }
+          } );
+
+          $$('get_result_gallery_mp4').addEventListener( 'click', () => {
+            if( VIDEO_BLOB ){
+              VIDEO_URL = URL.createObjectURL( VIDEO_BLOB );
+              const a = $$("get_result_gallery_mp4");
+              a.href = VIDEO_URL;
+              a.download = dateNow() + '_gallery.mp4';
+            }
+          } );
+
+          const scrollInspectorToFrame = ( i ) => {
+            const _thumb = $$(`inspector_key_${i}`);
+            if( _thumb ){
+            _thumb.scrollIntoView({ behavior: 'instant' });
+            }
+          };
+
+          const changeThumbsSize = () => {
+            const frames = FRAMES_BUFFER_ARRAY;
+            const GG = $$('thumbs_list');
+            const sizeVal = 606 / $$('thubms_size_control').value;
+            GG.innerHTML = "";
+            $$('processed').innerText = `${frames.length} : ${frames.length}`;
+            for( let i = 0; i < frames.length; i++ ){
+              const filteredFrame = {
+                t: TEXT_BUFFER_ARRAY[ i ],
+                f: FRAMES_BUFFER_ARRAY[ i ],
+              };
+              const div_ = document.createElement('div');
+              div_.addEventListener( 'click', () => {
+                scrollInspectorToFrame( i );
+              } );
+              div_.title = filteredFrame.t.positive;
+              div_.style.width = sizeVal; 
+              div_.style.height = sizeVal;
+              const img = new Image();
+              img.src = filteredFrame.f;
+
+              div_.appendChild( img );
+      
+              const _favoriteBox = document.createElement('div');
+              _favoriteBox.title = 'favorite box';
+              _favoriteBox.classList.add('editable_favorite');
+              _favoriteBox.innerText =  '☆';
+              if( TEXT_BUFFER_ARRAY[ i ].favorite ){
+                _favoriteBox.classList.add('active');
+                _favoriteBox.innerText =  '★';
+              }
+              _favoriteBox.addEventListener( 'click', ( e ) => { 
+                e.stopPropagation();
+                e.preventDefault();
+                const nextFavoriteState = !TEXT_BUFFER_ARRAY[ i ].favorite;
+                TEXT_BUFFER_ARRAY[ i ].favorite = nextFavoriteState;
+                if( nextFavoriteState ){
+                  _favoriteBox.classList.add('active');
+                _favoriteBox.innerText =  '★';
+                } else {
+                  _favoriteBox.classList.remove('active');
+                _favoriteBox.innerText =  '☆';
+                }
+              } );
+              div_.appendChild( _favoriteBox );
+              
+              const _includeBox = document.createElement('div');
+              _includeBox.title = 'include box';
+              _includeBox.classList.add('editable_include');
+              if( !TEXT_BUFFER_ARRAY[ i ].include ){
+                  _includeBox.classList.add('excluded');
+              }
+              _includeBox.addEventListener( 'click', ( e ) => { 
+                e.stopPropagation();
+                e.preventDefault();
+                const nextIncState = !TEXT_BUFFER_ARRAY[ i ].include;
+                TEXT_BUFFER_ARRAY[ i ].include = nextIncState;
+                if( nextIncState ){
+                  _includeBox.classList.remove('excluded');
+                } else {
+                  _includeBox.classList.add('excluded');
+                }
+              } );
+              div_.appendChild( _includeBox );
+
+              GG.appendChild( div_ );
+            } 
+          };
+          const getJSONfromFile = ( file, callback  ) => {
+            if( !file ) { callback( null ); return false; }
+            const fr = new FileReader();
+            fr.onload = () => {
+              let _json = null;
+              try { _json = JSON.parse( fr.result ); } catch( err ){}
+              if(!_json) { callback( null ); return false; }
+              callback( _json );
+            };
+            fr.readAsText( file );
+          };
+          const getTextfromFile = ( file, callback  ) => {
+            if( !file ) { callback( null ); return false; }
+            const fr = new FileReader();
+            fr.onload = () => {
+              callback( fr.result );
+            };
+            fr.readAsText( file );
+          };
+          $$('concat_by_json').addEventListener( 'change', async ( e ) => {
+            const file = $$('concat_by_json').files[0];            
+            $$('concat_by_json').value = null;
+            getJSONfromFile( file, ( _json ) => {              
+              if(!_json){ return null; }
+              for( const nextElement of _json ){
+                FRAMES_BUFFER_ARRAY.push( nextElement.f );
+                TEXT_BUFFER_ARRAY.push(  nextElement.t );
+              }
+              updateInspectorByFiles();
+              changeThumbsSize();
+            } );
+          } );
+          $$('replace_by_json').addEventListener( 'change', async ( e ) => {
+            const file = $$('replace_by_json').files[0];            
+            $$('replace_by_json').value = null;
+            getJSONfromFile( file, ( _json ) => { 
+              if(!_json){ return null; }             
+              FRAMES_BUFFER_ARRAY = [];
+              TEXT_BUFFER_ARRAY = [];
+              for( const nextElement of _json ){
+                FRAMES_BUFFER_ARRAY.push( nextElement.f );
+                TEXT_BUFFER_ARRAY.push(  nextElement.t );
+              }
+              updateInspectorByFiles();
+              changeThumbsSize();
+            } );
+          } );
+
+          $$('extract_from_html').addEventListener( 'change', async ( e ) => {
+            const file = $$('extract_from_html').files[0];            
+            $$('extract_from_html').value = null;
+            getTextfromFile( file, ( _html_string ) => { 
+              if( !_html_string.includes('/*DATA_START*/') ){
+                return false;
+              }
+              const asArray = _html_string.split('\n');
+              let extracted_f = '';
+              let extracted_t = '';
+              let status = 'start';
+              for( const nextString of asArray ){
+                const ns = nextString.trim();
+                if( ns.includes('/*DATA_END*/') ){
+                   break;
+                }
+                if( status === 'start' ){ 
+                  if( ns.includes('/*DATA_START*/') ){ status = 'none'; }
+                  continue;
+                }
+                if( ns.includes( 'const f' ) ){ 
+                  status = 'f';
+                  continue;
+                }
+                if( ns.includes( 'const t' ) ){ 
+                  status = 't';
+                  continue;
+                }
+                if( (status === 'f' || status === 't') && ns.includes('];') ){ 
+                  status = 'none';
+                  continue;
+                }
+                if( status === 'f' ){ extracted_f += ns }
+                if( status === 't' ){ extracted_t += ns }
+              }
+              if( extracted_f.length === 0 ){
+                return false;
+              }
+              // console.log( { extracted_f, extracted_t } );
+              extracted_f = JSON.parse(`[${ extracted_f }]`);
+              extracted_t = JSON.parse(`[${ extracted_t }]`);
+              // console.log( {
+              //   extracted_f,
+              //   extracted_t,
+              // } )
+              for( let i = 0; i < extracted_f.length; i++ ){
+                let textOptions = {
+                  positive: extracted_t[i].positive,
+                  negative: extracted_t[i].negative,
+                  config: extracted_t[i].config,
+                  include: ( 'include' in extracted_t[i] ) ? extracted_t[i].include : true,
+                  favorite: extracted_t[i].favorite || false,
+                };
+                FRAMES_BUFFER_ARRAY.push( extracted_f[ i ] );
+                TEXT_BUFFER_ARRAY.push( textOptions );
+              }
+              updateInspectorByFiles();
+              changeThumbsSize();
+            } );
+          } );
+
+          $$('download_data_as_json').addEventListener( 'click', ( e ) => {
+            // e.stopPropagation();
+            // e.preventDefault();
+            const finallyData = [];
+            for( let i = 0; i < FRAMES_BUFFER_ARRAY.length; i++ ){
+              if( TEXT_BUFFER_ARRAY[i].include ){
+                finallyData.push( {
+                  f: FRAMES_BUFFER_ARRAY[i],
+                  t: TEXT_BUFFER_ARRAY[i],
+                } );
+              }
+            }
+            const finallyData_string = JSON.stringify(finallyData, null, 2);
+            alert( `
+Finally data:
+- Images: ${ finallyData.length }
+- Size: ~${ parseInt( finallyData_string.length / 1000 ) }Kb
+            ` );
+            const galleryBlob = new Blob([ JSON.stringify(finallyData, null, 2) ], { type: "application/json" });
+            _URL = URL.createObjectURL( galleryBlob );
+            const a = $$("download_data_as_json");
+            a.href = _URL;
+            a.download = dateNow() + '_gallery.json';
+            // URL.revokeObjectURL( _URL );
+          } );
+
+          $$('download_images_zip').addEventListener( 'click', ( e ) => {
+            const zip = new JSZip();
+            const folders = {};
+            let imgs_folder;
+            if( !window.IMG_TO_CAT ){
+              imgs_folder = zip.folder("images");
+            }
+            let i = 0;
+            for( const nextFrame of FRAMES_BUFFER_ARRAY ){
+              if( !window.IMG_TO_CAT ){
+                imgs_folder.file( `${i}_img.jpg`, nextFrame.replace('data:image/jpeg;base64,', '' ) , {base64: true} ); //
+              } else {
+                const positive = TEXT_BUFFER_ARRAY[ i ].positive;
+                if( !folders[ positive ] ){
+                  folders[ positive ] = zip.folder(positive);
+                }
+                // const folder = folders[ positive ];
+                folders[ positive ].file( `${i}_img.jpg`, nextFrame.replace('data:image/jpeg;base64,', '' ) , {base64: true} ); //
+              }
+              i++;
+            }
+            zip.file( "data.json", JSON.stringify( TEXT_BUFFER_ARRAY, null, 2 ), { type: "application/json" });
+            zip.generateAsync({type:"blob"}).then(function(content) {        
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL( content );
+                a.download = dateNow() + '_images_gallery.zip';
+                a.click();
+            });
+          } );
+
+          $$('specific_resize').addEventListener( 'change', () => {
+              const isCheckedNow = !!$$('specific_resize').checked;
+              SPECIFIC_RESIZE_ENABLED = isCheckedNow;
+              if( SPECIFIC_RESIZE_ENABLED ){
+                $$('specific_resize_container').classList.remove('hidden');
+              } else {
+                $$('specific_resize_container').classList.add('hidden');
+              }
+          } );
+
+          $$('switch_include_all').addEventListener( 'click', () => {
+            for( const nextT of TEXT_BUFFER_ARRAY ){
+              nextT.include = true;
+            }
+              updateInspectorByFiles();
+              changeThumbsSize();
+          } );
+
+          $$('switch_exclude_all').addEventListener( 'click', () => {
+            for( const nextT of TEXT_BUFFER_ARRAY ){
+              nextT.include = false;
+            }
+              updateInspectorByFiles();
+              changeThumbsSize();
+          } );
+
+          $$('thubms_size_control').addEventListener( 'change', () => {
+            changeThumbsSize();
+          } );
+
+        }
+    </script>
+  
+
+</body></html>
