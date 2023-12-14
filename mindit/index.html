@@ -92,6 +92,7 @@
       <div id="editor_menu">
         <label for="load_data">load data<input style="display: none;" id="load_data" type="file" accept=".json"></label>
         <label for="save_data">save data<button style="display: none;" id="save_data">save_data</button></label>
+        <label for="clear_data">clear data<button style="display: none;" id="clear_data">clear_data</button></label>
       </div>
       <hr>
       <div id="editor_body" style="width:100%">
@@ -579,7 +580,15 @@
           a.download = Date.now() + '_mindit.json';
           a.click();
         });
-
+        
+        $$('clear_data').addEventListener( 'click', () => {
+          const result = prompt( 'write "yes" to clear current data' );
+          if( result == "yes" ){
+            localStorage.removeItem( LOCAL_STORAGE_ITEM_NAME );
+            window.location.reload()
+          }
+        });
+        
         document.querySelectorAll('.task_priority').forEach( ( e ) => {
           const color = PRIORITY_COLORS[ e.value ];
           e.parentNode.style.backgroundColor = color;
