@@ -1,0 +1,118 @@
+<html>
+  <head>
+    <style>
+      body{
+        font-family: monospace;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background: #374151;
+        color: #eee;
+      }
+      body * {
+        user-select: none;
+      }
+      input{
+        user-select: none;
+      }
+      .hidden{
+        display: none;
+      }
+      .label_button{
+        border: 1px #ffffff solid;
+        padding: 3px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #eee;
+      }
+      .label_button:hover {
+        color: #ff5500;
+      }
+      #video_input_container{
+        width: 150px;
+      }
+
+      #test_diff img{
+        max-width: 128px;
+      }
+
+      #sequence_decoder_canvas{
+        max-width: 480px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2> a to b gradient</h2>
+    prompt:<br>
+    <textarea name="" id="prompt" cols="30" rows="10"></textarea><br>
+    steps: <input id="steps" type="number" step="1" style="width: 90px;" /><br>
+    <textarea name="" id="processing_tags" cols="30" rows="10"></textarea><br>
+    <!-- <textarea name="" id="list_of_embeddings" cols="30" rows="10"></textarea><br> -->
+    <button id="get_result">startProcess</button><br>
+    <div id="result_show" style="font-size: 12px;">Result will be here</div>
+    <script>
+
+      const $$ = ( _id ) => { return document.getElementById(_id); }
+
+      $$('prompt').value = `(closeup:@@0),[night:evening:@@1] street, default woman (walk:@@4)(dance:@@5) alone, (smiling face:@@3)`;
+
+$$('processing_tags').value = `@@0, 0.8:1
+@@1, 0:0.20
+@@3, -1:1
+@@4, 1:0
+@@5, 0:1`;
+
+$$('steps').value = 10;
+
+      window.onload = ()=> {
+
+        $$('get_result').addEventListener( 'click', () => {
+
+          const prompt = $$('prompt').value;
+          const steps = parseInt( $$('steps').value );
+          const tagsForParse = $$('processing_tags').value;
+
+          const result_tags = {};
+          const tagsStringsArray = tagsForParse.split('\n');
+
+          const interpolate = ( n1, n2, a ) => {
+            return n1 + ( n2 - n1 ) * a;
+          }
+          for( const nextTagStringForParse of tagsStringsArray ){
+            const trimed = nextTagStringForParse.trim();
+            if( trimed !== '' ){
+              const splitedTag = trimed.split(',');
+              const tagName = splitedTag[0].trim();
+              result_tags[ tagName ] = [];
+              const tagWeight = splitedTag[1].trim().split(':');
+              const from = parseFloat( tagWeight[0] );
+              const to = parseFloat( tagWeight[1] );
+              for( let i = 0; i < steps+1; i ++ ){
+                const alpha = i / steps;
+                const value = parseFloat( interpolate( from, to, alpha ).toFixed(6) );
+                result_tags[ tagName ].push( value );
+              }
+            }
+          }
+
+          const strings = [];
+
+          for( let i = 0; i < steps+1; i++ ){
+            let nextString = prompt.replaceAll('\n', ' ') + '';
+            for( const nextTag in result_tags ){
+              if( nextString.includes( nextTag ) ){
+                nextString = nextString.replace( nextTag, result_tags[ nextTag ][ i ] );
+              }
+            }
+            strings.push(nextString );
+          }
+
+          console.log( result_tags );
+
+          $$('result_show').innerText = strings.join('\n');
+        } );
+
+      };
+    </script>
+  </body>
+</html>
