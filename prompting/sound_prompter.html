@@ -1,0 +1,869 @@
+<html>
+  <head>
+    <link rel="icon" type="image/x-icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4QBmRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAAQAAAATgAAAAAAAABgAAAAAQAAAGAAAAABcGFpbnQubmV0IDUuMC45AP/bAEMAAgEBAQEBAgEBAQICAgICBAMCAgICBQQEAwQGBQYGBgUGBgYHCQgGBwkHBgYICwgJCgoKCgoGCAsMCwoMCQoKCv/bAEMBAgICAgICBQMDBQoHBgcKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCv/AABEIABAAEAMBEgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APyt1zXNP+MGntp+nybkbhmFGuaHp/wf09tQ0+Pai8sor92xP1j2P/Crbl8tj8Dwv1X23/CTfm8w0PXNP+D+nrp+oSbUXhWNGh6Hp/xg09dQ1CPcjcqpp4X6z7Ff2Xbl8wxX1X2r/ta/N5H/2Q==">
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <style>
+      body{
+        font-family: monospace;
+        /* width: 100%; */
+        /* height: 100%; */
+        padding: 10px;
+        margin: 0;
+        background: #374151;
+        color: #eee;
+      }
+      body * {
+        /* user-select: none; */
+      }
+      input{
+        user-select: none;
+      }
+      .hidden{
+        display: none;
+      }
+      .label_button{
+        border: 1px #ffffff solid;
+        padding: 3px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #eee;
+      }
+      .label_button:hover {
+        color: #ff5500;
+      }
+      #video_input_container{
+        width: 150px;
+      }
+
+      #test_diff img{
+        max-width: 128px;
+      }
+
+      #sequence_decoder_canvas{
+        max-width: 480px;
+      }
+      #tag_list{
+        display: inline-block;
+      }
+      .tag-hint{
+        padding: 0px 2px 0px 10px;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .tag-input{
+        width: 46px;
+        font-size: 10px;
+      }
+
+      #democan{
+        width:1024px; height: 128px; float: left;
+        background-color: black;
+        /* display: none; */
+      }
+
+      #democan2{
+        width:256px; height: 128px;
+        background-color: black;
+        /* display: none; */
+      }
+
+      #fast_democan{
+        background-color: black;
+        image-rendering: pixelated; 
+        image-rendering: crisp-edges;
+        width:1280px; 
+        height: 128px;
+      }
+
+      #freq_explorer{
+        background-color: black;
+        image-rendering: pixelated; 
+        image-rendering: crisp-edges;
+        width:1280px; 
+        height: 128px;
+      }
+
+      #play_bar{
+        width: 1280;
+        height: 2;
+        position: relative;
+        background-color: #004400;
+      }
+
+      #play_position{
+        position: absolute;
+        bottom: 0;
+        width: 1px;
+        height: 130px;
+        transform: translate( -50%, 0%);
+        background-color: #ff5500;
+      }
+
+      #player {
+        height: 14px;
+      }
+
+      #freq_pointer{
+        position: relative;
+        width: 0;
+        height: 128px;
+        float: left;
+      }
+
+      #freq_pointer .freq_line{
+        position: absolute;
+        width: 1280px;
+        height: 1px;
+        opacity: 0.3;
+        top: 0px;
+      }
+
+    </style>
+  </head>
+  <body>
+    <br>
+    <div id="controls_container">
+      <label class="label_button" for="file_loading">upload sound</label>
+      <input type="file" id="file_loading" style="display: none;">
+      <span id="file_name"></span> : <audio id="player" controls></audio>
+    </div>
+    <br>
+    <canvas id="democan"></canvas>
+    <canvas id="democan2"></canvas><br>
+    <canvas id="fast_democan" ></canvas><div id="freq_pointer"></div><br>
+    <div id="play_bar"><div id="play_position"></div></div><br>
+    <canvas id="freq_explorer" ></canvas><br>
+    <div id="tag_list"></div> : manual <input type="checkbox" id="use_manual_fControl"> | 
+    rec per sec: <input title="records per second" style="width: 64px;" id="rec_per_sec" type="number" min="0.01" max="30" step="0.01" value="1"> |
+    max rec's: <input title="maximum records" style="width: 64px;" id="max_records" type="number" min="1" step="1" value="0"> |
+    <button id="test_fast_convertor">convert</button>
+    <br><br>
+    <textarea name="" id="base_prompt" style="width: 1280px; height: 64px;">dancing girl ( in opbettricome suit:@1) , stay in (wide:@2) room, with ( fluxziluriotic environment : @6 ), (very impressive scene: @7 ), girl is (surprised:@5)</textarea><br>
+    <br>
+    result: <span id="quants_count"></span><br>
+    <br>
+    <textarea id="recorded" style="width: 1280px; height: 64px;" ></textarea><br>
+    <button id="deforum_it">convert to deforum json</button> step size <input id="defo_setp" type="number" min="1" step="1" value="1"><br>
+    <textarea id="deforum_recorded" style="width: 1280px; height: 64px;" ></textarea><br>
+
+    <script>
+
+      $$ = ( ID ) => { return document.getElementById(ID) }
+
+
+
+
+
+      const getDataTemplate = ( type = 1 ) => {
+
+        const isManualChecked = !!$$('use_manual_fControl').checked;
+        
+
+        if( isManualChecked ){
+
+          const _w = 8;
+
+          const _v = [
+            $$('_@1').value, $$('_@2').value,  $$('_@3').value, $$('_@4').value,
+            $$('_@5').value, $$('_@6').value, $$('_@7').value, $$('_@8').value 
+          ];
+
+          const defData = [ 
+            [`@1`, _v[0], _v[0] + _w, '#ff0000', 0],
+            [`@2`, _v[1], _v[1] + _w, '#ff6600', 0],
+            [`@3`, _v[2], _v[2] + _w, '#cc9933', 0],
+            [`@4`, _v[3], _v[3] + _w, '#99ff66', 0],
+            [`@5`, _v[4], _v[4] + _w, '#66cc99', 0],
+            [`@6`, _v[5], _v[5] + _w, '#3399cc', 0],
+            [`@7`, _v[6], _v[6] + _w, '#0066ff', 0],
+            [`@8`, _v[7], _v[7] + _w, '#0000ff', 0],
+          ];
+
+          return defData;
+
+        }
+        
+        if( type === 0 ){
+          const _w = 8;
+          return [ 
+            [`@1`, 0, 0 + _w, '#ff0000', 0],
+            [`@2`, 128, 128 + _w, '#ff6600', 0],
+            [`@3`, 256, 256 + _w, '#cc9933', 0],
+            [`@4`, 384, 384 + _w, '#99ff66', 0],
+            [`@5`, 512, 512 + _w, '#66cc99', 0],
+            [`@6`, 640, 640 + _w, '#3399cc', 0],
+            [`@7`, 768, 768 + _w, '#0066ff', 0],
+            [`@8`, 896, 896 + _w, '#0000ff', 0],
+          ];
+        }
+
+        if( type == 1 ){
+          return [ 
+            [`@1`, 0, 8, '#ff0000', 0],
+            [`@2`, 8, 16, '#ff6600', 0],
+            [`@3`, 16, 32, '#cc9933', 0],
+            [`@4`, 32, 64, '#99ff66', 0],
+            [`@5`, 64, 128, '#66cc99', 0],
+            [`@6`, 128, 256, '#3399cc', 0],
+            [`@7`, 256, 512, '#0066ff', 0],
+            [`@8`, 512, 1024, '#0000ff', 0],
+          ];
+        }
+
+        if( type == 2 ){
+          return [ 
+            [`@1`, 0, 256, '#ff0000', 0],
+            [`@2`, 256, 512, '#ff6600', 0],
+            [`@3`, 512, 768, '#cc9933', 0],
+            [`@4`, 768, 1024, '#99ff66', 0],
+            [`@5`, 1024, 1280, '#66cc99', 0],
+            [`@6`, 1280, 1536, '#3399cc', 0],
+            [`@7`, 1536, 1792, '#0066ff', 0],
+            [`@8`, 1792, 2048, '#0000ff', 0],
+          ];
+        }
+
+        return [ 
+          [`@1`, 0, 8, '#ff0000', 0],
+          [`@2`, 8, 16, '#ff6600', 0],
+          [`@3`, 16, 32, '#cc9933', 0],
+          [`@4`, 32, 64, '#99ff66', 0],
+          [`@5`, 64, 128, '#66cc99', 0],
+          [`@6`, 128, 256, '#3399cc', 0],
+          [`@7`, 256, 512, '#0066ff', 0],
+          [`@8`, 512, 1024, '#0000ff', 0],
+        ];
+
+      }
+
+      const SOUND_PROMPTER_LOCAL_STORAGE_KEY = 'SOUND_PROMPTER_LOCAL_STORAGE_KEY';
+      if( localStorage.getItem( SOUND_PROMPTER_LOCAL_STORAGE_KEY ) ){
+        $$('base_prompt').value = localStorage.getItem( SOUND_PROMPTER_LOCAL_STORAGE_KEY );
+      }
+      $$('base_prompt').addEventListener('input', () => {
+        localStorage.setItem( SOUND_PROMPTER_LOCAL_STORAGE_KEY, $$('base_prompt').value );
+      });
+
+      for( const e of getDataTemplate( 0 ) ){
+
+        const nextSpan = document.createElement('span');
+        nextSpan.classList.add('tag-hint');
+        nextSpan.innerText = e[0];
+        nextSpan.style = `color:${e[3]}`;
+        $$('tag_list').appendChild( nextSpan );
+
+        const nextInput = document.createElement('input');
+        nextInput.type = 'number';
+        nextInput.min = 1;
+        nextInput.max = 1016;
+        nextInput.step = 1;
+        nextInput.value = e[1];
+        nextInput.id = `_${e[0]}`;
+        nextInput.classList.add('tag-input');
+        $$('tag_list').appendChild( nextInput );
+
+
+        const nextFPointer = document.createElement('div');
+        nextFPointer.classList.add('freq_line');
+        nextFPointer.id = `freq_line_${e[0]}`;
+        nextFPointer.style = `background-color:${e[3]}; top: ${ parseInt( e[1] / 1024 * 100 ) }%;`;
+        $$('freq_pointer').appendChild( nextFPointer );
+
+        nextInput.addEventListener('input', () => {
+          if( nextInput.value > 1016 ){
+            nextInput.value = 1016;
+          } else if ( nextInput.value < 0 ) {
+            nextInput.value = 0;
+          }
+
+          nextFPointer.style = `background-color:${e[3]}; top: ${ parseInt( nextInput.value / 1024 * 100 ) }%;`;
+        });
+
+      }
+      
+
+      class FrequencyReader {
+
+        constructor( audioElement ){
+
+          this.audioElement = audioElement;
+          this.context = new AudioContext();
+          this.analizer = this.context.createAnalyser();
+          this.source = this.context.createMediaElementSource( this.audioElement );
+          this.source.connect(this.context.destination);
+          this.source.connect(this.analizer);
+
+          this.can = $$('democan');
+          this.ctx = this.can.getContext('2d');
+
+          this.can.width = 1024;
+          this.can.height = 256;
+
+
+          this.can2 = $$('democan2');
+          this.can2_temp = document.createElement('canvas');
+          this.ctx2 = this.can2.getContext('2d');
+          this.ctx2_temp = this.can2_temp.getContext('2d');
+
+          this.can2.width = 1024;
+          this.can2.height = 1024;
+          this.can2_temp.width = 1024;
+          this.can2_temp.height = 1024;
+
+          this.ctx2.fillStyle  = '#000000';
+          this.ctx2.fillRect( 0, 0, 1024, 1024 );
+          
+
+          this.isActive = false;
+          this.animate();
+
+          this.lastFrequencyExtracted = null;
+          this.promptRecorderInterval = null;
+
+          this.totalRecorded = [];
+
+          this.can2_record_limit = 64;
+          this.can2_record_arr = [];
+
+        }
+
+        prepareData( DATA_ARR, timeFrequencyData, timeFloatData ){
+
+        }
+
+        drawData( DATA_ARR, timeFrequencyData, timeFloatData ){
+
+          // if( this.can2_record_arr.length > this.can2_record_limit ){
+          //   this.can2_record_arr.shift();
+          // }
+
+          // this.can2_record_arr.push( DATA_ARR );
+
+          const preparedData = this.prepareData( DATA_ARR, timeFrequencyData, timeFloatData );
+
+          const _H = this.can.height - 55;
+
+          const ctx = this.ctx;
+          const ctx2 = this.ctx2;
+          const ctx2_temp = this.ctx2_temp;
+          const base = 10;
+          const _Y = ( data ) => {
+            return _H - data / 2;
+          }
+
+          ctx.lineWidth = 1;
+          ctx.fillStyle  = '#000000';
+          ctx.fillRect( 0, 0, 1024, _H + 55 );
+
+          // ctx2.fillStyle  = '#000000';
+          // ctx2.fillRect( 0, 0, 1024, _H + 255 );
+
+          // timeFrequencyData
+          
+          ctx.strokeStyle = '#00ffff';
+          ctx.beginPath(); // Start a new path
+          ctx.moveTo( 0, _H );
+          for( let i = 0; i < DATA_ARR.length; i++ ){
+            const nextX = 1024 / timeFrequencyData.length * i;
+            ctx.lineTo( base + i, _Y(timeFrequencyData[i]) ); // Draw a line to (150, 100)
+          }
+          ctx.stroke(); // Render the path
+
+
+          // time float Data
+
+          ctx.strokeStyle = '#ff00ff';
+          ctx.beginPath(); // Start a new path
+          ctx.moveTo( 0, _H );
+          for( let i = 0; i < DATA_ARR.length; i++ ){
+            const nextX = 1024 / timeFloatData.length * i;
+            ctx.lineTo( base + i, _Y(timeFloatData[i]*255) - 50 ); // Draw a line to (150, 100)
+          }
+          ctx.stroke(); // Render the path
+
+
+
+          ctx.strokeStyle = '#555555';
+          ctx.beginPath(); // Start a new path
+          ctx.moveTo( 0, _H );
+          ctx.lineTo( base, _H );
+          for( let i = 0; i < DATA_ARR.length; i++ ){
+            ctx.lineTo( base + i, _Y(DATA_ARR[i]) ); // Draw a line to (150, 100)
+          }
+          ctx.stroke(); // Render the path
+
+
+          // *********************************
+          // Draw diogram
+
+          ctx2_temp.drawImage( this.can2, 0, 0);
+          for( let n = 0; n < DATA_ARR.length; n++ ) {
+            ctx2.fillStyle = ` rgb( ${ parseInt( DATA_ARR[n] ) }, 0, 0 ) `;
+            ctx2.fillRect( 0, n, 1, 1 );
+          }
+          ctx2.drawImage( this.can2_temp, 2, 0 );
+
+
+          // *********************************
+
+
+          // default is 1 for DATA_ARR
+          const waveControllData = getDataTemplate(1);
+
+          const calculateBySegments = ( _data ) => {
+            for( let i = 0; i < _data.length; i++ ){
+              for( const nextFrek of waveControllData ){
+                if( i >= nextFrek[1] && i <= nextFrek[2] ){
+                  nextFrek[4] += _data[i]
+                }
+              }
+            }
+              
+            for( let i = 0; i < waveControllData.length; i++ ){
+              const nextFrek = waveControllData[i];
+              nextFrek[4] /= ( nextFrek[2] - nextFrek[1] );
+              nextFrek[5] = nextFrek[4]/255;
+              if( i > 1 ){
+                nextFrek[5] *= i*0.8;
+              }
+            }
+          };
+
+          const calculateSeparated = () => {
+            let n = 0;
+            for( let i = 0; i < DATA_ARR.length; i++ ){
+              if(!waveControllData[n]){ n = 0; }
+              waveControllData[n][4] += DATA_ARR[i];
+              n++;
+            }
+            for( let i = 0; i < waveControllData.length; i++ ){
+              const nextFrek = waveControllData[i];
+              nextFrek[4] /= 1024/8;
+              nextFrek[5] = nextFrek[4]/255;
+            }
+          };
+
+          calculateBySegments( DATA_ARR );
+          // calculateBySegments( timeFrequencyData );
+          // calculateSeparated();
+
+           // normalize values
+          ctx.lineWidth = 4;
+          for( let i = 0; i < waveControllData.length; i++ ){
+            const nextFrek = waveControllData[i];
+            ctx.beginPath(); // Start a new path
+            ctx.strokeStyle = nextFrek[3];
+            ctx.moveTo( base + nextFrek[1], _Y(nextFrek[4]) );
+            ctx.lineTo( base + nextFrek[2], _Y(nextFrek[4]) ); // Draw a line to (150, 100)
+            ctx.stroke(); // Render the path
+          }
+
+          this.lastFrequencyExtracted = waveControllData;
+
+        }
+
+        processPrompt(){
+          
+          if( this.lastFrequencyExtracted ) {
+
+            let base_prompt = $$('base_prompt').value;
+
+            for( const nextE of this.lastFrequencyExtracted ){
+              const nextTag = nextE[0];
+              const nextWeight = parseFloat( nextE[5].toFixed(2) );
+              if( base_prompt.includes( nextTag ) ){
+                base_prompt = base_prompt.replaceAll( nextTag, nextWeight );
+              }
+            }
+
+            this.totalRecorded.push( base_prompt );
+
+            const finallyString = this.totalRecorded.join('\n');
+
+            $$('recorded').value = finallyString;
+
+          }
+
+        }
+
+        checkContext(){
+
+          const { context, audioElement, source, analizer } = this;
+
+          this.frequencyBin = analizer.frequencyBinCount;
+          
+          
+          const timeFrequencyData = new Uint8Array(analizer.fftSize);
+          const timeFloatData = new Float32Array(analizer.fftSize);
+          analizer.getByteTimeDomainData(timeFrequencyData);
+          analizer.getFloatTimeDomainData(timeFloatData);
+
+          const DATA_ARR = new Uint8Array(analizer.frequencyBinCount);
+          analizer.getByteFrequencyData(DATA_ARR);
+
+          this.drawData( DATA_ARR, timeFrequencyData, timeFloatData );
+
+          return {
+            DATA_ARR,
+            timeFrequencyData,
+            timeFloatData,
+          }
+        }
+
+        play(){
+          this.totalRecorded = [];
+          // this.audioElement.play();
+          const recordsPerSecond = $$('rec_per_sec').value;
+          // if( this.promptRecorderInterval ){
+          //   clearInterval( this.promptRecorderInterval );
+          // }
+          // this.promptRecorderInterval = setInterval( () => {
+          //   this.processPrompt();
+          // }, 1000 / recordsPerSecond );
+          this.isActive = true;
+        }
+
+        stop(){
+          // this.audioElement.pause();
+          // if( this.promptRecorderInterval ){
+          //   clearInterval( this.promptRecorderInterval );
+          // }
+          this.isActive = false;
+        }
+
+        animate(){
+          requestAnimationFrame( () => {
+            if( this.isActive ){
+              this.checkContext();
+            }
+            this.animate();
+          } );
+
+        }
+
+      }
+
+      const PLAYER = $$('player');
+
+      let Freader;
+      
+      PLAYER.addEventListener('play', () => {
+        Freader.play();
+      });
+      PLAYER.addEventListener('pause', () => {
+        Freader.stop();
+      });
+
+      PLAYER.addEventListener( 'timeupdate', () => {
+        $$('play_position').style.left = `${ parseInt( 1280 * PLAYER.currentTime / PLAYER.duration ) }px`;
+      } );
+
+      let _GLOBAL_FILE = null;
+
+      window.onload = async () => {
+
+        let CANPLAYTHROUGH = false;
+
+        PLAYER.addEventListener('canplaythrough', function() { 
+          CANPLAYTHROUGH = true;
+        }, false); 
+        
+
+        $$('file_loading').addEventListener('change', async () => {
+          CANPLAYTHROUGH = false;
+          const file = $$('file_loading').files[0];
+          if( file ){
+            $$('file_name').innerText = file.name;
+          }
+          _GLOBAL_FILE = file;
+          
+          const fr = new FileReader();
+
+          fr.onload = () => {
+
+            PLAYER.src = fr.result;
+
+            Freader = Freader || new FrequencyReader( PLAYER );
+
+            // Freader.play();
+
+            // setInterval( () => {
+            //   Freader.checkContext();
+            // }, 1000 );
+          }
+
+          fr.readAsDataURL( file );
+
+        });
+
+
+        $$('test_fast_convertor').addEventListener( 'click', () => {
+
+          if(!_GLOBAL_FILE){ return false; }
+
+          const fr2 = new FileReader();
+
+          fr2.onload = () => {
+
+            const rawArrayBuffer = fr2.result;
+
+            const tempAudioContext = new AudioContext();
+
+            tempAudioContext.decodeAudioData( rawArrayBuffer, ( result ) => {
+
+              const decodedAudioBuffer = result;
+              const { length, sampleRate } = decodedAudioBuffer;
+
+              const offlineAudioContext = new OfflineAudioContext({ length, sampleRate });
+              const audioBufferSourceNode = new AudioBufferSourceNode( offlineAudioContext, { decodedAudioBuffer });
+              audioBufferSourceNode.buffer = decodedAudioBuffer;
+              const analyserNode = new AnalyserNode(offlineAudioContext);
+              audioBufferSourceNode.connect(analyserNode);
+              audioBufferSourceNode.start();
+
+              const runAnaliser = ( _onUpdate = ()=>{} ) => {
+
+                const renderQuantumInSeconds = 1 / $$('rec_per_sec').value;
+
+                const durationInSeconds = length / sampleRate;
+
+                const checked_data = [];
+
+                const byteFrequencyData = new Uint8Array(analyserNode.frequencyBinCount);
+
+                  return new Promise( ( resolveAnalise, rejectAnalise ) => {
+
+                    const analyze = ( index ) => {
+
+                      const suspendTime = renderQuantumInSeconds * index;
+
+                      if (suspendTime < durationInSeconds) {
+
+                        offlineAudioContext.suspend(suspendTime).then( ( test ) => {
+                          _onUpdate( durationInSeconds, suspendTime );
+                          analyserNode.getByteFrequencyData(byteFrequencyData);
+                          const nextA = [];
+                          for( const nextE of byteFrequencyData ){ nextA.push( nextE ); }
+                          checked_data.push( nextA );
+                          analyze(index + 1);
+                        }, ( err ) => {
+                          rejectAnalise( err );
+                        });
+                      } else {
+                        resolveAnalise( checked_data );
+                      }
+                      if (index === 1) {
+                          offlineAudioContext.startRendering();
+                      } else {
+                          offlineAudioContext.resume();
+                      }
+                    };
+                    analyze(1);
+                  } );
+                }
+
+              runAnaliser( ( total, processed ) => {
+
+                // console.log( ( processed / total * 100 ).toFixed(2) );
+
+              } ).then( async ( resultData ) => {
+                
+
+
+                const maxRecords = $$('max_records').value;
+
+                if( resultData ){
+                  $$('quants_count').innerText = resultData.length;
+                }
+
+                const calculateBySegments = ( fData ) => {
+                  const fControlData = getDataTemplate(1);
+                  for( let i = 0; i < fData.length; i++ ){
+                    for( const nextFrek of fControlData ){
+                      if( i >= nextFrek[1] && i <= nextFrek[2] ){
+                        nextFrek[4] += fData[i]
+                      }
+                    }
+                  }
+                  for( let i = 0; i < fControlData.length; i++ ){
+                    const nextFrek = fControlData[i];
+                    nextFrek[4] /= ( nextFrek[2] - nextFrek[1] );
+                    nextFrek[5] = nextFrek[4]/255;
+                    if( i > 1 ){
+                      nextFrek[5] *= i*0.8;
+                    }
+                  }
+                  return fControlData;
+                };
+
+                const globalDataList = [];
+                for( let i = 0; i < resultData.length; i++ ){
+                  if( maxRecords && maxRecords > 0 ){
+                    if( globalDataList.length < maxRecords ){
+                      const nextCalculatedFData = calculateBySegments( resultData[i] );
+                      globalDataList.push( nextCalculatedFData );
+                    }
+                  } else {
+                    const nextCalculatedFData = calculateBySegments( resultData[i] );
+                    globalDataList.push( nextCalculatedFData );
+                  }
+                }
+
+                // filter and normalize
+                const filterAndNormalizeData = ( _data ) => {
+                  const channelsMinMax = [
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                    [ Infinity, -Infinity ],
+                  ];
+
+                  for( let i = 0; i < channelsMinMax.length; i++ ){
+                    for( const nextD of _data ){
+                      const val = nextD[i][5];
+                      if( val < channelsMinMax[i][0] ){
+                        channelsMinMax[i][0] = val;
+                      }
+                      if( val > channelsMinMax[i][1] ){
+                        channelsMinMax[i][1] = val;
+                      }
+                    }
+                  }
+                  for( const nextD of _data ){
+                    for( let i = 0; i < nextD.length; i++ ){
+                      const min = channelsMinMax[i][0];
+                      const max = channelsMinMax[i][1];
+                      nextD[i][5] = ( nextD[i][5] - min ) / ( max - min ) * 1.5;
+                    }
+                    // console.log( nextD );
+                  }
+                };
+                filterAndNormalizeData( globalDataList );
+
+
+                
+                const processPrompt = ( fData ) => {
+                  if( fData ){
+                    let base_prompt = $$('base_prompt').value;
+                    for( const nextE of fData ){
+                      const nextTag = nextE[0];
+                      const nextWeight = parseFloat( nextE[5].toFixed(2) );
+                      if( base_prompt.includes( nextTag ) ){
+                        base_prompt = base_prompt.replaceAll( nextTag, nextWeight );
+                      }
+                    }
+                    return base_prompt;
+                  }
+                  return '';
+                };
+
+                const globalStringList = [];
+                for( const nextD of globalDataList ){
+                  const _string = processPrompt( nextD );
+                  globalStringList.push( _string );
+                }
+
+                const finallyString = globalStringList.join('\n');
+                $$('recorded').value = finallyString;
+
+
+                const can = $$('fast_democan');
+                const ctx = can.getContext('2d');
+
+                let _width = 1280;
+                let _height = 128;
+
+                if( resultData[0] ){
+                  _width =  Math.min( resultData.length, 4096 );
+                  _height = resultData[0].length;
+                }
+
+                can.width = _width;
+                can.height = _height;
+                const segmentWidth = _width / resultData.length;
+
+
+                ctx.fillStyle = '#000000';
+                ctx.fillRect( 0, 0, _width, _height );
+                for( let i = 0; i < resultData.length; i++ ){
+                  const segmentHeight = _height / resultData[i].length;
+                  for( let n = 0; n < resultData[i].length; n++ ){
+                    const nextQant = resultData[i][n];
+
+                    ctx.fillStyle = `rgb( ${ parseInt( nextQant ) }, 0, 0 )`;
+                    // ctx.fillRect( ( segmentWidth * i ), n, segmentWidth, segmentHeight );
+                    ctx.fillRect( ( segmentWidth * i ), n, 1, 1 );
+                  }
+
+                }
+
+                let _width2 = 1280;
+                let _height2 = 128;
+
+                const fcan = $$('freq_explorer');
+                const fctx = fcan.getContext('2d');
+                
+                fcan.width = _width2;
+                fcan.height = _height2;
+
+                fctx.fillStyle = '#000000';
+                fctx.fillRect( 0, 0, _width2, _height2 );
+
+                for( let i = 0; i < 7; i++ ) {
+
+                  fctx.strokeStyle = globalDataList[0][i][3];
+                  fctx.beginPath(); // Start a new path
+                  fctx.moveTo( 0, _height2 );
+                  for( let n = 0; n < globalDataList.length; n++ ){
+                    const nextX = _width2 / globalStringList.length * n;
+                    const nextY = _height2 - ( globalDataList[n][i][5] * 0.5 * _height2 );
+                    fctx.lineTo( nextX, nextY );
+                  }
+                  fctx.stroke(); // Render the path
+                }
+
+
+
+              } );
+
+            } );
+
+
+
+          };
+
+          fr2.readAsArrayBuffer( _GLOBAL_FILE );
+
+        } );
+
+
+        $$('deforum_it').addEventListener( 'click', () => {
+
+          const currentStrings = $$('recorded').value;
+          const def_step = $$('defo_setp').value;
+
+          const strings = currentStrings.split('\n');
+
+          const finallyJSON = {};
+
+          for( let i = 0; i < strings.length; i++ ){
+            const nextStep = i * def_step;
+            finallyJSON[ nextStep ] = strings[ i ];
+          }
+
+          $$('deforum_recorded').value = JSON.stringify( finallyJSON, null, 2 );
+
+        } );
+
+      }
+
+
+    </script>
+
+  </body>
+</html>
