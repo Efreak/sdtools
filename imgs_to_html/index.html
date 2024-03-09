@@ -732,7 +732,7 @@
                   </div>
                   <div class="display_div">
                     <div class="display_div_image">
-                      <img title="click to open image in new window" id="display">
+                      <img  id="display" title="click to open image in new window"  style="cursor: pointer;">
                     </div>
                     <textarea class="info_area" id="text_positive"></textarea>
                     <textarea class="info_area" id="text_negative"></textarea>
@@ -904,11 +904,13 @@
                     $$('change_thumb_size').addEventListener( 'change', () => {
                         globalGalleryUpdate();
                     } );
-                    $$('display').addEventListener( 'click', () => {
-                      const a = document.createElement('a');
-                      a.href = $$('display').src;
-                      a.traget = '_blank';
-                      a.click();
+                    $$('display').addEventListener( 'click', () => { 
+                      const bC = atob( $$('display').src.replace('data:image/jpeg;base64,','') );
+                      const bN = new Array(bC.length);
+                      for (let i = 0; i < bC.length; i++) bN[i] = bC.charCodeAt(i);
+                      const ObjURL = window.URL.createObjectURL( new Blob([ new Uint8Array(bN) ], {type: 'image/jpeg' }) );
+                      window.open( ObjURL, '_blank');
+                      window.URL.revokeObjectURL( ObjURL );
                     });
                   };
                 </SCRPT>
@@ -1620,7 +1622,6 @@ Finally data:
           $$('thubms_size_control').addEventListener( 'change', () => {
             changeThumbsSize();
           } );
-
         }
     </script>
   </body>
