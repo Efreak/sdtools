@@ -904,6 +904,12 @@
                     $$('change_thumb_size').addEventListener( 'change', () => {
                         globalGalleryUpdate();
                     } );
+                    $$('display').addEventListener( 'click', () => {
+                      const a = document.createElement('a');
+                      a.href = $$('display').src;
+                      a.traget = '_blank';
+                      a.click();
+                    });
                   };
                 </SCRPT>
               </body>
