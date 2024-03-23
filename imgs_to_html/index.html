@@ -923,7 +923,18 @@
         let TOTAL_BASIC_SIZE = 0;
         let TOTAL_SIZE_AFTER_COMPRESS = 0;
         let SPECIFIC_RESIZE_ENABLED = false;
+        let CAPTION_TXT_FILES = {};
 
+        const extractFileName = ( str ) => {
+          let n = str.split('.');
+          n.pop();
+          return n.join('.');
+        }
+
+        const extractFileExtension = ( str ) => {
+          return str.split('.').pop()
+        }
+      
         function dateNow(){
           const date = new Date();
           let year = date.getFullYear();
@@ -975,6 +986,10 @@
                 TEXT_BUFFER_ARRAY.push( textOptions );
               }
 
+              if( nextDataPack.name_without_ext && CAPTION_TXT_FILES[ nextDataPack.name_without_ext ] ){
+                textOptions.positive = CAPTION_TXT_FILES[ nextDataPack.name_without_ext ]
+              }
+              
               await new Promise( async ( resolveImageConversion, rejectImageConversion )=>{
                 const fr = new FileReader();
                 fr.onload = () => {
@@ -1071,22 +1086,34 @@
             TOTAL_BASIC_SIZE = 0;
             TOTAL_SIZE_AFTER_COMPRESS = 0;
             for( const nextFile of files ){
+              const ext = nextFile.name ? extractFileExtension( nextFile.name ) : null;
+              const name_without_ext = extractFileName( nextFile.name );
               await new Promise( ( resolve, reject ) => {
                 const reader = new FileReader()
-                reader.onload = () => {
-                  const buffer = reader.result;
-                  const { name, type, size,} = nextFile;
-                  TOTAL_BASIC_SIZE += size;
-                  baseForWork.push( {
-                    file: nextFile,
-                    buffer,
-                    name,
-                    type,
-                    size,
-                  } );
-                  resolve();
-                };
-                reader.readAsBinaryString( nextFile );
+                if( [ 'png' ].includes( ext ) ){
+                  reader.onload = () => {
+                    const buffer = reader.result;
+                    const { name, type, size,} = nextFile;
+                    TOTAL_BASIC_SIZE += size;
+                    baseForWork.push( {
+                      file: nextFile,
+                      buffer,
+                      name,
+                      type,
+                      size,
+                      name_without_ext
+                    } );
+                    resolve();
+                  };
+                  reader.readAsBinaryString( nextFile );
+                }
+                if( [ 'txt' ].includes( ext ) ){
+                  reader.onload = () => {
+                    CAPTION_TXT_FILES[ name_without_ext ] = reader.result;
+                    resolve();
+                  };
+                  reader.readAsText( nextFile );
+                }
               } );
             }
             ProcessingModalWindow.init( baseForWork.length );
@@ -1227,6 +1254,7 @@
             const files = $$('load_files').files;
             await processFiles( files );
             updateTemplate();
+            let CAPTION_TXT_FILES = {};
             $$('load_files').value = null;
             updateInspectorByFiles();
           } ); 
