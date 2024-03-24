@@ -313,7 +313,7 @@
         y: <input id="specific_resize_y" type="number" step="1" value="512" style="width: 80px;">
       </span> | 
       <label id="load_files_label" for="load_files"> select images </label>
-      <input type="file" id="load_files" multiple style="display: none;"/>  | 
+      <input type="file" id="load_files" multiple style="display: none;" accept="image/gif, image/jpeg, image/jpg, image/png, image/webp, plain/txt"/>   | 
       add to the end? <input title="new images will be added to the end of current gallery instead replace it" type="checkbox" id="add_images_over_gallery">
       <br>
       <hr>
@@ -957,14 +957,22 @@
 
           const processSinglePicture = async ( nextDataPack, FRAMES_BUFFER_ARRAY, TEXT_BUFFER_ARRAY ) => {
             return new Promise( async ( resolveProcessing, rejectProcessing ) => {
-              const metadata = pngMetadata.splitChunk( nextDataPack.buffer );
-               let textOptions = {
+
+              const { name_without_ext, ext } = nextDataPack;
+
+              let textOptions = {
                 positive: '',
                 negative: '',
                 config: '',
                 include: true,
                 favorite: false,
+                name_without_ext, 
+                ext
               };
+
+              const animated = nextDataPack.ext === 'gif' || nextDataPack.ext === 'mp4';
+              const metadata = !animated ? pngMetadata.splitChunk( nextDataPack.buffer ) : null;
+
               if( metadata && metadata[1] && metadata[1].type == 'tEXt' ){
                 const dataArr = metadata[1].data.split('\n');
                 let _state = 'positive'; // positive | negative | config
@@ -986,8 +994,8 @@
                 TEXT_BUFFER_ARRAY.push( textOptions );
               }
 
-              if( nextDataPack.name_without_ext && CAPTION_TXT_FILES[ nextDataPack.name_without_ext ] ){
-                textOptions.positive = CAPTION_TXT_FILES[ nextDataPack.name_without_ext ]
+              if( name_without_ext && CAPTION_TXT_FILES[ name_without_ext ] ){
+                textOptions.positive = CAPTION_TXT_FILES[ name_without_ext ]
               }
               
               await new Promise( async ( resolveImageConversion, rejectImageConversion )=>{
@@ -1021,7 +1029,13 @@
                   };
                   processingImage.src = fr.result;
                 };
-                fr.readAsDataURL( nextDataPack.file );
+                if( animated ){
+                  TOTAL_SIZE_AFTER_COMPRESS += fr.result.length;
+                  FRAMES_BUFFER_ARRAY.push( fr.result );
+                  resolveImageConversion();
+                } else {
+                  processingImage.src = fr.result;
+                }
               } );
 
               resolveProcessing();
@@ -1090,7 +1104,7 @@
               const name_without_ext = extractFileName( nextFile.name );
               await new Promise( ( resolve, reject ) => {
                 const reader = new FileReader()
-                if( [ 'png' ].includes( ext ) ){
+                if( [ 'png', 'jpg', 'jpeg', 'webp' ].includes( ext ) ){
                   reader.onload = () => {
                     const buffer = reader.result;
                     const { name, type, size,} = nextFile;
@@ -1101,11 +1115,29 @@
                       name,
                       type,
                       size,
-                      name_without_ext
+                      name_without_ext,
+                      ext
                     } );
                     resolve();
                   };
                   reader.readAsBinaryString( nextFile );
+                }
+                if( [ 'gif' ].includes( ext ) ){
+                  reader.onload = () => {
+                    const { name, type, size,} = nextFile;
+                    TOTAL_BASIC_SIZE += size;
+                    baseForWork.push( {
+                      gif: true,
+                      file: nextFile,
+                      name,
+                      type,
+                      size,
+                      name_without_ext,
+                      ext
+                    } );
+                    resolve();
+                  };
+                  reader.readAsDataURL( nextFile );
                 }
                 if( [ 'txt' ].includes( ext ) ){
                   reader.onload = () => {
@@ -1601,7 +1633,11 @@ Finally data:
             let i = 0;
             for( const nextFrame of FRAMES_BUFFER_ARRAY ){
               if( !window.IMG_TO_CAT ){
-                imgs_folder.file( `${i}_img.jpg`, nextFrame.replace('data:image/jpeg;base64,', '' ) , {base64: true} ); //
+                if( TEXT_BUFFER_ARRAY[ i ].ext === 'gif' ){
+                  imgs_folder.file( `${i}_img.gif`, nextFrame.replace('data:image/gif;base64,', '' ) , {base64: true} ); //
+                } else {
+                  imgs_folder.file( `${i}_img.jpg`, nextFrame.replace('data:image/jpeg;base64,', '' ) , {base64: true} ); //
+                }
               } else {
                 const positive = TEXT_BUFFER_ARRAY[ i ].positive;
                 if( !folders[ positive ] ){
