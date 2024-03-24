@@ -970,7 +970,7 @@
                 ext
               };
 
-              const animated = nextDataPack.ext === 'gif' || nextDataPack.ext === 'mp4';
+              const animated = nextDataPack.ext === 'gif' || nextDataPack.ext === 'webp';
               const metadata = !animated ? pngMetadata.splitChunk( nextDataPack.buffer ) : null;
 
               if( metadata && metadata[1] && metadata[1].type == 'tEXt' ){
@@ -1104,7 +1104,7 @@
               const name_without_ext = extractFileName( nextFile.name );
               await new Promise( ( resolve, reject ) => {
                 const reader = new FileReader();
-                if( [ 'png', 'jpg', 'jpeg', 'webp' ].includes( ext ) ){
+                if( [ 'png', 'jpg', 'jpeg' ].includes( ext ) ){
                   reader.onload = () => {
                     const buffer = reader.result;
                     const { name, type, size,} = nextFile;
@@ -1122,12 +1122,11 @@
                   };
                   reader.readAsBinaryString( nextFile );
                 }
-                if( [ 'gif' ].includes( ext ) ){
+                if( [ 'gif', 'webp' ].includes( ext ) ){
                   reader.onload = () => {
                     const { name, type, size,} = nextFile;
                     TOTAL_BASIC_SIZE += size;
                     baseForWork.push( {
-                      gif: true,
                       file: nextFile,
                       name,
                       type,
@@ -1633,7 +1632,9 @@ Finally data:
             let i = 0;
             for( const nextFrame of FRAMES_BUFFER_ARRAY ){
               if( !window.IMG_TO_CAT ){
-                if( TEXT_BUFFER_ARRAY[ i ].ext === 'gif' ){
+                if( TEXT_BUFFER_ARRAY[ i ].ext === 'webp' ){
+                  imgs_folder.file( `${i}_img.webp`, nextFrame.replace('data:image/webp;base64,', '' ) , {base64: true} ); //
+                } else if( TEXT_BUFFER_ARRAY[ i ].ext === 'gif' ){
                   imgs_folder.file( `${i}_img.gif`, nextFrame.replace('data:image/gif;base64,', '' ) , {base64: true} ); //
                 } else {
                   imgs_folder.file( `${i}_img.jpg`, nextFrame.replace('data:image/jpeg;base64,', '' ) , {base64: true} ); //
