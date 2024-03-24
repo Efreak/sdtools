@@ -313,7 +313,7 @@
         y: <input id="specific_resize_y" type="number" step="1" value="512" style="width: 80px;">
       </span> | 
       <label id="load_files_label" for="load_files"> select images </label>
-      <input type="file" id="load_files" multiple style="display: none;" accept="image/gif, image/jpeg, image/jpg, image/png, image/webp, plain/txt"/>   | 
+      <input type="file" id="load_files" multiple style="display: none;" accept="image/gif, image/jpeg, image/jpg, image/png, image/webp, plain/txt"/> | 
       add to the end? <input title="new images will be added to the end of current gallery instead replace it" type="checkbox" id="add_images_over_gallery">
       <br>
       <hr>
@@ -934,7 +934,7 @@
         const extractFileExtension = ( str ) => {
           return str.split('.').pop()
         }
-      
+
         function dateNow(){
           const date = new Date();
           let year = date.getFullYear();
@@ -997,7 +997,7 @@
               if( name_without_ext && CAPTION_TXT_FILES[ name_without_ext ] ){
                 textOptions.positive = CAPTION_TXT_FILES[ name_without_ext ]
               }
-              
+
               await new Promise( async ( resolveImageConversion, rejectImageConversion )=>{
                 const fr = new FileReader();
                 fr.onload = () => {
@@ -1027,15 +1027,15 @@
                     FRAMES_BUFFER_ARRAY.push( nextDataUrl );
                     resolveImageConversion();
                   };
-                  processingImage.src = fr.result;
+                  if( animated ){
+                    TOTAL_SIZE_AFTER_COMPRESS += fr.result.length;
+                    FRAMES_BUFFER_ARRAY.push( fr.result );
+                    resolveImageConversion();
+                  } else {
+                    processingImage.src = fr.result;
+                  }
                 };
-                if( animated ){
-                  TOTAL_SIZE_AFTER_COMPRESS += fr.result.length;
-                  FRAMES_BUFFER_ARRAY.push( fr.result );
-                  resolveImageConversion();
-                } else {
-                  processingImage.src = fr.result;
-                }
+                fr.readAsDataURL( nextDataPack.file );
               } );
 
               resolveProcessing();
@@ -1103,7 +1103,7 @@
               const ext = nextFile.name ? extractFileExtension( nextFile.name ) : null;
               const name_without_ext = extractFileName( nextFile.name );
               await new Promise( ( resolve, reject ) => {
-                const reader = new FileReader()
+                const reader = new FileReader();
                 if( [ 'png', 'jpg', 'jpeg', 'webp' ].includes( ext ) ){
                   reader.onload = () => {
                     const buffer = reader.result;
@@ -1686,6 +1686,7 @@ Finally data:
           $$('thubms_size_control').addEventListener( 'change', () => {
             changeThumbsSize();
           } );
+
         }
     </script>
   </body>
