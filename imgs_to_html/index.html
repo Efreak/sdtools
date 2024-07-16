@@ -176,6 +176,37 @@
       #video_recorder_menu{
         padding: 10px;
       }
+      
+      #modal_window_custom{
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.5 ) ;
+      }
+
+      #modal_window_custom_close_button{
+        width: 20px;
+        height: 20px;
+        color: #eee;
+        background: #374151;
+        border: 1px #6a6a6a solid;
+        cursor: pointer;
+        position: absolute;
+        right: 4px;
+        top: -11px;
+        font-size: 25px;
+        text-align: center;
+        line-height: 16px;
+        padding: 5px;
+        border-radius: 5px;
+      }
+      #modal_window_custom_close_button:hover{
+        background: #505866;
+      }
+
       #modal_window_1{
         width: 100%;
         height: 100%;
@@ -277,6 +308,16 @@
     </style>
   </head>
   <body>
+    
+    <div id="modal_window_custom" class="modal_window hidden">
+      <div class="outer_container">
+        <div class="inner_container">
+          <div id="modal_window_custom_close_button">x</div>
+          <div id="modal_window_custom_elements_container"></div>
+        </div>
+      </div>
+    </div>
+
     <div id="modal_window_1" class="modal_window hidden">
       <div class="outer_container">
         <div class="inner_container">
@@ -313,8 +354,12 @@
         y: <input id="specific_resize_y" type="number" step="1" value="512" style="width: 80px;">
       </span> | 
       <label id="load_files_label" for="load_files"> select images </label>
-      <input type="file" id="load_files" multiple style="display: none;" accept="image/gif, image/jpeg, image/jpg, image/png, image/webp, plain/txt"/> | 
-      add to the end? <input title="new images will be added to the end of current gallery instead replace it" type="checkbox" id="add_images_over_gallery">
+      <input type="file" id="load_files" multiple style="display: none;" accept="image/gif, image/jpeg, image/jpg, image/png, image/webp, plain/txt"/>  | 
+      add to the end? <input title="new images will be added to the end of current gallery instead replace it" type="checkbox" id="add_images_over_gallery"> |
+      <label id="js_for_evaluate_label" class="label_button" for="js_for_evaluate"
+      title="for developers only - need to be applyed once for works"
+      >edit prompt parser .js</label>
+      <button  style="display: none;" id="js_for_evaluate">edit prompt parser .js</button>
       <br>
       <hr>
       create mp4?: <input id="video_recorder_switcher" type="checkbox">
@@ -947,9 +992,75 @@
           return combined_string;
         }
 
+        const $$ = (id) => { return document.getElementById( id ); };
+
+        let PROMPT_PARSER_FOO = null;
+        let PROMPT_PARSER_FOR_FOO = `
+// here you get only one value - its 'parsedImagePrompt'
+// write body of your function here, to test prompt parsing
+// below example for parsing ComfyUI workflow data
+let test = parsedImagePrompt.trim();
+test = test.replace('prompt', '' );
+test = test.replaceAll(/[\\u0000-\\u001F]+/g,"");
+let err = null;
+try{
+ test = JSON.stringify( JSON.parse( test  ), null, 2 );
+} catch( _err ){ err = _err; }
+return test;
+        `;
+
+
+        const CUSTOM_POPUP = {
+          window: $$('modal_window_custom'),
+          closeButton: $$('modal_window_custom_close_button'),
+          elementsContainer: $$('modal_window_custom_elements_container'),
+          options: {}, 
+          createRowHolder: function(){
+            const nextRowHolder = document.createElement('div');
+            nextRowHolder.classList.add('elements_row_holder');
+            return nextRowHolder;
+          },
+          prepare: function(){
+            this.closeButton.addEventListener( 'click', () => {
+              this.close(); 
+            });
+          },
+          applyElements: function( elements ){
+            for( const nextRow of elements ){
+              const rowHolder = this.createRowHolder();
+              const width = ( 100 / nextRow.length - 1 ) + '%';
+              for( const elm of nextRow ){
+                const el = document.createElement( elm.type );
+                if( elm.style ){ Object.assign( el.style, elm.style ) }
+                el.style.width = width; 
+                el.style.display = 'inline-block';
+                if( elm.events ){
+                  for( const eventName in elm.events ) el.addEventListener( eventName, ( event )=>{ elm.events[ eventName ]( this, event ); } );
+                }
+                if( elm.attr ){
+                  for( const nextAttrName in elm.attr ) el[ nextAttrName ] = elm.attr[ nextAttrName ];
+                }
+                rowHolder.appendChild( el );
+              }
+              this.elementsContainer.appendChild( rowHolder );
+            }
+
+          },
+          init: function( options = {} ){
+            this.elementsContainer.innerHTML = '';
+            this.options = options;
+            this.applyElements( options.elements || [] );
+            this.window.classList.remove('hidden');
+          },
+          close: function(){
+            this.options = {};
+            this.window.classList.add('hidden');
+          }
+        }
+        CUSTOM_POPUP.prepare();
+
         window.onload = () => {
 
-          const $$ = (id) => { return document.getElementById( id ); };
 
           const processingCanvas = document.createElement('canvas');
           const processingContext = processingCanvas.getContext('2d');
@@ -988,6 +1099,13 @@
                   } else if(  _state === 'config'  ) {
                     textOptions.config += ' ' + dataArr[i];
                   }
+                }
+                if( PROMPT_PARSER_FOO ){
+                  try {
+                    textOptions.positive = PROMPT_PARSER_FOO( textOptions.positive );
+                  } catch( err ){
+                    console.warn( err );
+                  } 
                 }
                 TEXT_BUFFER_ARRAY.push( textOptions );
               } else {
@@ -1687,6 +1805,59 @@ Finally data:
           $$('thubms_size_control').addEventListener( 'change', () => {
             changeThumbsSize();
           } );
+
+          $$('js_for_evaluate').addEventListener( 'click', () => {
+
+            let TEMP_FOO = PROMPT_PARSER_FOR_FOO;
+
+            CUSTOM_POPUP.init({
+              name: '',
+              elements: [
+                [ 
+                  { 
+                    type: 'textarea', 
+                    attr: {
+                      value: TEMP_FOO, 
+                    },
+                    style: { minHeight: '400px' },
+                    events: {
+                      input: ( modal, event ) => {
+                          TEMP_FOO = event.target.value;
+                      }  
+                    }
+                  } 
+                ],
+                [
+                  { 
+                    type: 'button',  
+                    attr: {
+                      innerText: 'apply', 
+                    },
+                    style: { backgroundColor: '#aaffaa' },
+                    events: {
+                      click: ( modal, event ) => {
+                        const FOO = new Function( 'parsedImagePrompt', TEMP_FOO );
+                        PROMPT_PARSER_FOR_FOO = TEMP_FOO;
+                        PROMPT_PARSER_FOO = FOO
+                      }  
+                    }
+                  },
+                  { 
+                    type: 'button',  
+                    attr: {
+                      innerText: 'disable parser usage', 
+                    },
+                    style: { backgroundColor: '#ffaaaa' },
+                    events: {
+                      click: ( modal, event ) => {
+                        PROMPT_PARSER_FOO = null;
+                      }  
+                    }
+                  },
+                ],
+              ],
+            });
+          });
 
         }
     </script>
