@@ -801,9 +801,9 @@
                     const { f, t } = searchEngine.getFiltered( frameIndex );
                     $$('slide').value = ( frameIndex + 1 ) / searchEngine.filtered.length;
                     $$('display').src = f; 
-                    $$('text_positive').innerText = t.positive;
-                    $$('text_negative').innerText = t.negative;
-                    $$('text_config').innerText = t.config;
+                    $$('text_positive').value = t.positive;
+                    $$('text_negative').value = t.negative;
+                    $$('text_config').value = t.config;
                     $$('frame_counter').innerText = (1 + frameIndex) + ' : ' + searchEngine.filtered.length;
                   };
 
