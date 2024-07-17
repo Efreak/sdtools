@@ -1003,10 +1003,25 @@ let test = parsedImagePrompt.trim();
 test = test.replace('prompt', '' );
 test = test.replaceAll(/[\\u0000-\\u001F]+/g,"");
 let err = null;
+let asJSON = null;
 try{
- test = JSON.stringify( JSON.parse( test  ), null, 2 );
+    asJSON = JSON.parse( test  );
 } catch( _err ){ err = _err; }
-return test;
+const textData = [];
+for( const nextID in asJSON ){
+    const nextNode = asJSON[ nextID ];
+    const class_type = nextNode.class_type.toLowerCase();
+    for( const nextInputName in nextNode.inputs ){
+        const toLowerName = nextInputName.toLowerCase();
+        if( toLowerName.includes('text') && ( typeof (nextNode.inputs[nextInputName]) == 'string'  ) ){
+            const text = nextNode.inputs[nextInputName];
+            if( text !== '' ){
+                textData.push(` [${ class_type } -> ${ toLowerName }]\n${ text }\n`);
+            }
+        }
+    }
+}
+return textData.join('\n');
         `;
 
 
