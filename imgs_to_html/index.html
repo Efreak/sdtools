@@ -1016,7 +1016,14 @@ for( const nextID in asJSON ){
         if( toLowerName.includes('text') && ( typeof (nextNode.inputs[nextInputName]) == 'string'  ) ){
             const text = nextNode.inputs[nextInputName];
             if( text !== '' ){
-                textData.push(\` [\${ class_type } -> \${ toLowerName }]\\n \${ text }\\n\`);
+                textData.push( [
+                  class_type,
+                  ' -> ',
+                  toLowerName,
+                  '\\n',
+                  text,
+                  '\\n'
+                ].join('') );
             }
         }
     }
