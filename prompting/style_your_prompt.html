@@ -99,7 +99,7 @@
         position: absolute;
         bottom: 10px;
         left: 10px;
-        font-size: 20px;
+        font-size: 16px;
         text-shadow: 2px 3px 1px BLACK, 1px 0px 6px BLACK;
       }
 
@@ -152,7 +152,7 @@
 
         #tab_add_new_style textarea{
           width: 500px;
-          height: 100px;
+          height: 80px;
         }
 
         #switch_edit_mode{
@@ -170,6 +170,11 @@
         img.place_before{
           border-left: 1px solid #ff5500;
         }
+
+        #selected_style_name {
+          text-shadow: 3px 4px 0px #000;
+        }
+
     </style>
     <script src="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/js/tabby.polyfills.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/css/tabby-ui.css">
@@ -190,13 +195,16 @@
         <h4>Stable Diffusion styles for prompt:</h4>
         <div class="left_panel" >
           Your prompt: <br>
-          <textarea name="" id="from_positive" cols="30" rows="10"></textarea><br><br><br><br>
+          <textarea name="" id="from_positive" cols="30" rows="9"></textarea><br><br><br> 
           <!-- negative: <br> -->
           <!-- <textarea name="" id="from_negative" cols="60" rows="5"  style="display: none;"></textarea><br> --> 
+          <h4 id="selected_style_name"></h4>
           Processed prompt: <br>
-          <textarea name="" id="to_positive" cols="30" rows="10"></textarea><br><br>
+          <textarea name="" id="to_positive" cols="30" rows="9"></textarea><br><br>
           Recomended negative prompt: <br>
-          <textarea name="" id="to_negative" cols="30" rows="10"></textarea><br> 
+          <textarea name="" id="to_negative" cols="30" rows="9"></textarea><br><br><br>
+          compiled: <br>
+          <textarea name="" id="build_for_tele" cols="30" rows="9"></textarea><br> 
         </div>
         <div class="right_panel" >
           <div id="styles_slider"></div>
@@ -251,6 +259,7 @@
               navbar_loadStyles: $$('navbar_load_db'),
               navbar_saveStyles: $$('navbar_save_db'),
 
+              slist_selected_style_name: $$('selected_style_name'),
               slist_container: $$('styles_slider'),
               slist_fromPositive: $$('from_positive'),
               slist_fromNegative: $$('from_negative'),
@@ -293,6 +302,8 @@
             this.defaults = {
               base_prompt: 'woman, dressed in outfit'
             }
+
+            const link_for_load_base_db = `${link}?time=${ parseInt( Date.now() / 1000000 ) }`;
 
             if( link ){
               const catchError = ( err ) => {
@@ -563,11 +574,14 @@
           }
           
           styles_list_process(){
-            const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative } = this.elements;
+            const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative, slist_selected_style_name } = this.elements;
             const totalData = [];
             const nextOptions = this.STYLES[ this.options.styles_list_current_index ];
+            slist_selected_style_name.innerText = nextOptions.name;
             slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
             slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
+
+            $$('build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
           }
 
           styles_list_render(){
