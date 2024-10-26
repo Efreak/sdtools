@@ -216,7 +216,7 @@
 
         <div class="board_section">
           New Style Name: <br>
-          <input type="text" id="new_style_name" /><br><br>
+          <input type="text" style="width:500px;" id="new_style_name" /><br><br>
           New Style Prompt: <small>use {prompt} tag to point the place where user prompt will placed</small> <br>
           <textarea name="" id="new_style_positive"></textarea><br><br>
           New Style Negative Prompt: <br>
@@ -225,6 +225,8 @@
         </div>
         <div class="board_section">
           <img src="" alt="" id="thumb_image" style="width:128px;height:164px;"><br> 
+          From JSON: <br>
+          <textarea name="" id="new_style_json"></textarea><br><br> 
         </div>
 
         <div style="visibility: hidden;" >
@@ -275,7 +277,8 @@
               new_style_nameInput: $$('new_style_name'),
               new_style_positive: $$('new_style_positive'),
               new_style_negative: $$('new_style_negative'),
-            };
+              new_style_json: $$('new_style_json'),
+            }; 
 
             this.elements.new_style_context = this.elements.new_style_canvas.getContext('2d');
 
@@ -354,17 +357,31 @@
               }
             });
 
-            const { new_style_createButton, new_style_nameInput, new_style_positive, new_style_negative } = this.elements;
+            const { new_style_createButton, new_style_nameInput, new_style_positive, new_style_negative, new_style_json } = this.elements;
             //add new style button 
             new_style_createButton.addEventListener( 'click', () => {
+              let _from_textarea = new_style_json.value;
+              let _json_from_textarea = {};
+              try{
+                _json_from_textarea = JSON.parse( _from_textarea );
+              }catch( err ){
+                console.warn( err );
+              }
+
               const thumb_data_url = new_style_image.src;
               const _json = {
-                name: new_style_nameInput.value || 'noname_' + Date.now(),
-                prompt: new_style_positive.value || '',
-                negative: new_style_negative.value || '',
+                name: _json_from_textarea.name || new_style_nameInput.value || 'noname_' + Date.now(),
+                prompt: _json_from_textarea.prompt || new_style_positive.value || '',
+                negative: _json_from_textarea.negative || new_style_negative.value || '',
                 thumb: thumb_data_url || '',
               };
+
               if( _json ){
+
+                new_style_nameInput.value = _json.name;
+                new_style_positive.value = _json.prompt;
+                new_style_negative.value = _json.negative;
+
                 const finallyStyles = []; 
                 finallyStyles.push( _json );
                 while( this.STYLES.length ){
