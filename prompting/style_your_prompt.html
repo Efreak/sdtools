@@ -89,6 +89,12 @@
         cursor: pointer;
         position: relative;
       }
+      
+      #styles_slider .item.mixed{ 
+        box-shadow: 0 0 4px 4px #ee00ff;
+        border-radius: 8px;
+      }
+
       #styles_slider .item img{
         width: 100%;
         height: 230px;
@@ -103,77 +109,100 @@
         text-shadow: 2px 3px 1px BLACK, 1px 0px 6px BLACK;
       }
 
-        /* Стилізація для Chrome, Safari, Edge */
-        /* Весь скроллбар */
-        #styles_slider::-webkit-scrollbar {
-            width: 12px;
-        }
+      /* Стилізація для Chrome, Safari, Edge */
+      /* Весь скроллбар */
+      #styles_slider::-webkit-scrollbar {
+          width: 12px;
+      }
 
-        /* Трек (фон скроллбару) */
-        #styles_slider::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
+      /* Трек (фон скроллбару) */
+      #styles_slider::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+      }
 
-        /* Повзунок (слайдер) */
-        #styles_slider::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 10px;
-            border: 3px solid #f1f1f1; /* Відстань між слайдером та краями */
-        }
+      /* Повзунок (слайдер) */
+      #styles_slider::-webkit-scrollbar-thumb {
+          background-color: #888;
+          border-radius: 10px;
+          border: 3px solid #f1f1f1; /* Відстань між слайдером та краями */
+      }
 
-        /* При наведенні миші */
-        #styles_slider::-webkit-scrollbar-thumb:hover {
-            background-color: #555;
-        }
+      /* При наведенні миші */
+      #styles_slider::-webkit-scrollbar-thumb:hover {
+          background-color: #555;
+      }
 
-        /* Для Firefox */
-        #styles_slider {
-            scrollbar-width: thin; /* Тонкий скроллбар */
-            scrollbar-color: #888 #f1f1f1; /* Колір: слайдер і трек */
-        }
+      /* Для Firefox */
+      #styles_slider {
+          scrollbar-width: thin; /* Тонкий скроллбар */
+          scrollbar-color: #888 #f1f1f1; /* Колір: слайдер і трек */
+      }
 
-        .board_section{
-          display: inline-block; 
-          float: left; 
-          margin-left: 5px;
-          margin-bottom: 10px;
-        }
+      .board_section{
+        display: inline-block; 
+        float: left; 
+        margin-left: 5px;
+        margin-bottom: 10px;
+      }
 
-        small{
-          font-size: 10px;
-          color: #777;
-        }
+      small{
+        font-size: 10px;
+        color: #777;
+      }
 
-        .hidden{
-          visibility: hidden;
-          height: 0px;
-        } 
+      .hidden{
+        visibility: hidden;
+        height: 0px;
+      } 
 
-        #tab_add_new_style textarea{
-          width: 500px;
-          height: 80px;
-        }
+      #tab_add_new_style textarea{
+        width: 500px;
+        height: 80px;
+      } 
 
-        #switch_edit_mode{
-          cursor: pointer;
-        }
+      .remove_icon{
+        position: absolute;
+        top: 0px;
+        right: 10px;
+        font-size: 16px;
+        font-weight: bold;
+      }
 
-        .remove_icon{
-          position: absolute;
-          top: 0px;
-          right: 10px;
-          font-size: 16px;
-          font-weight: bold;
-        }
+      img.place_before{
+        border-left: 1px solid #ff5500;
+      }
 
-        img.place_before{
-          border-left: 1px solid #ff5500;
-        }
+      #selected_style_name {
+        text-shadow: 3px 4px 0px #000;
+      }
 
-        #selected_style_name {
-          text-shadow: 3px 4px 0px #000;
-        }
+      .style_mixer_checkbox{
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .sub_navbar{
+
+      }
+
+      .sub_navbar span{
+        cursor: pointer;
+      }
+      .sub_navbar span:hover *{
+        color: #ff5500;
+      }
+      .sub_navbar span:active *{
+        color: #ff5500;
+      }
+
+      .sub_navbar span.active {
+        border-bottom: 1px solid #ff5500;
+      }
 
     </style>
     <script src="https://cdn.jsdelivr.net/gh/cferdinandi/tabby@12/dist/js/tabby.polyfills.js"></script>
@@ -186,12 +215,18 @@
         <span class="inline_menu_item" id="navbar_load_db">load styles</span>
         <span class="inline_menu_item" id="navbar_save_db">save styles</span>
       </div>
+
       <ul data-tabs>
-        <li><a data-tabby-default href="#tab_main_styler">Main Styler</a></li>
+        <li><a data-tabby-default href="#tab_main_styler">Main Styler</a></li> 
         <li><a href="#tab_add_new_style">Create New</a></li>
       </ul>
+
+      <!-- Main Styler -->
       <div id="tab_main_styler">
-        <span style="float: right;" id="switch_edit_mode"><small>edit</small></span>
+        <div class="sub_navbar" style="float: right;">
+          <span class="switch_mode" data-value="mixer"><small>mixer</small></span> 
+          <span class="switch_mode" data-value="editor" id="switch_edit_mode"><small>edit</small></span>
+        </div>
         <h4>Stable Diffusion styles for prompt:</h4>
         <div class="left_panel" >
           Your prompt: <br>
@@ -210,7 +245,9 @@
           <div id="styles_slider"></div>
         </div>
       </div>
+      
 
+      <!-- Add New Style -->
       <div id="tab_add_new_style">
         <h4>Add new Style:</h4>
 
@@ -239,7 +276,16 @@
     </div>
     <script>
 
-      const $$ = ( id ) => { return document.getElementById( id ); }
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      const $$ = ( selector ) => { return document.querySelector( selector ); }
+      const $$$ = ( selector ) => { return document.querySelectorAll( selector ); }
 
       let CURRENT_STYLE_INDEX = 0;
 
@@ -255,29 +301,30 @@
             this.STYLES = [];
  
             this.elements = {
-              switch_edit_mode: $$('switch_edit_mode'),
+              switch_edit_mode: $$('#switch_edit_mode'),
+              switch_mode: $$$('.switch_mode'),
 
-              navbar_load_db_upload_file: $$('navbar_load_db_upload_file'),
-              navbar_loadStyles: $$('navbar_load_db'),
-              navbar_saveStyles: $$('navbar_save_db'),
+              navbar_load_db_upload_file: $$('#navbar_load_db_upload_file'),
+              navbar_loadStyles: $$('#navbar_load_db'),
+              navbar_saveStyles: $$('#navbar_save_db'),
 
-              slist_selected_style_name: $$('selected_style_name'),
-              slist_container: $$('styles_slider'),
-              slist_fromPositive: $$('from_positive'),
-              slist_fromNegative: $$('from_negative'),
-              slist_toPositive: $$('to_positive'),
-              slist_toNegative: $$('to_negative'),
+              slist_selected_style_name: $$('#selected_style_name'),
+              slist_container: $$('#styles_slider'),
+              slist_fromPositive: $$('#from_positive'),
+              slist_fromNegative: $$('#from_negative'),
+              slist_toPositive: $$('#to_positive'),
+              slist_toNegative: $$('#to_negative'),
 
-              new_style_image: $$('thumb_image'),
+              new_style_image: $$('#thumb_image'),
               new_style_processImage: new Image(),
               new_style_canvas: document.createElement('canvas'),
               new_style_context: null,
               new_style_freader: new FileReader(),
-              new_style_createButton: $$('add_style_button'),
-              new_style_nameInput: $$('new_style_name'),
-              new_style_positive: $$('new_style_positive'),
-              new_style_negative: $$('new_style_negative'),
-              new_style_json: $$('new_style_json'),
+              new_style_createButton: $$('#add_style_button'),
+              new_style_nameInput: $$('#new_style_name'),
+              new_style_positive: $$('#new_style_positive'),
+              new_style_negative: $$('#new_style_negative'),
+              new_style_json: $$('#new_style_json'),
             }; 
 
             this.elements.new_style_context = this.elements.new_style_canvas.getContext('2d');
@@ -298,9 +345,9 @@
               create_new_image: null,
             };
 
-            this.mode = {
-              edit_styles: false,
-            }
+            this.mode = '';
+
+            this.mixed_items = [];
 
             this.defaults = {
               base_prompt: 'woman, dressed in outfit'
@@ -327,6 +374,10 @@
               this.init();
             }
 
+          }
+
+          reset_mixed_styles(){
+            this.mixed_items = [];
           }
 
           initEventListeners(){
@@ -441,13 +492,20 @@
               URL.revokeObjectURL(url);
             } );
 
-            this.elements.switch_edit_mode.addEventListener( 'click', () => {
 
-              this.mode.edit_styles = !this.mode.edit_styles;
-              
-              this.styles_list_render();
+            const { switch_mode } = this.elements;
 
-
+            switch_mode.forEach( ( el, index ) => {
+              el.addEventListener( 'click', ( e ) => {
+                switch_mode.forEach( ( el2, index ) => {
+                  el2.classList.remove('active');
+                } );
+                const nextMode = el.dataset.value; 
+                this.mode = this.mode != nextMode ? nextMode : ''; 
+                if( this.mode === nextMode ) el.classList.add('active');
+                this.reset_mixed_styles();
+                this.styles_list_render();
+              } );
             } );
 
           }
@@ -484,31 +542,60 @@
           init(){
             this.elements.new_style_canvas.width = this.options.thumb_width;
             this.elements.new_style_canvas.height = this.options.thumb_height;
-            $$('from_positive').value = this.defaults.base_prompt;
+            $$('#from_positive').value = this.defaults.base_prompt;
             this.initEventListeners();
             this.styles_list_render();
           }
 
           styles_list_create_element( style_index ){
+
             const STYLES = this.STYLES;
             const nextSliderElement = document.createElement('div');
             nextSliderElement.classList.add('item');
+            if( this.mixed_items.includes( style_index ) ){
+              nextSliderElement.classList.add('mixed');
+            }
+
             const nextImg = new Image();
             nextImg.id = `style_image_${style_index}`;
             nextImg.src  = STYLES[ style_index ].thumb;
             nextSliderElement.appendChild( nextImg );
+            
             nextSliderElement.addEventListener('click', () => {
               this.options.styles_list_current_index = style_index;
               this.styles_list_process();
             });
+
             const name_span = document.createElement('span');
             name_span.classList.add('item_name');
             name_span.innerText = STYLES[ style_index ].name;
             nextSliderElement.appendChild( name_span );
             this.elements.slist_container.appendChild( nextSliderElement );
 
+            if( this.mode === 'mixer' ){
+
+              const mixer_checkbox = document.createElement('input');
+              mixer_checkbox.classList.add('style_mixer_checkbox');
+              mixer_checkbox.type = 'checkbox';
+              mixer_checkbox.checked = this.mixed_items.includes( style_index ) ? 'checked' : false;
+              nextSliderElement.appendChild( mixer_checkbox );
+
+              mixer_checkbox.addEventListener('click', (event) => { 
+                event.preventDefault();
+                event.stopPropagation();
+                if( this.mixed_items.includes( style_index ) ){
+                  this.mixed_items.splice( this.mixed_items.indexOf( style_index ), 1);
+                } else {
+                  this.mixed_items.push( style_index );
+                }
+                this.styles_list_render();
+                this.style_list_mix_process();
+              });
+
+            }
+
             // edit mode addons
-            if( this.mode.edit_styles ){
+            if( this.mode === 'editor' ){
 
               nextSliderElement.addEventListener('dragstart', (event) => { 
                 // event.preventDefault();
@@ -586,7 +673,83 @@
               } );
               nextSliderElement.appendChild( removeIcon );
 
+            }
 
+
+          }
+
+          combineMixedStyles( miexdStyles ){
+ 
+            const allNames = [];
+            let allPrompts = [];
+            let allNegatives = [];
+
+            for( const nextIndex of miexdStyles ){
+              const nextOptions = this.STYLES[ nextIndex ];
+              const { name, prompt, negative } = nextOptions;
+              allNames.push( name );
+              const prompt_withoutPromptTag = prompt.replaceAll('{prompt}', '');
+              const prompt_splitedByComa = prompt_withoutPromptTag.split(',');
+              allPrompts = allPrompts.concat( prompt_splitedByComa );
+              const negative_withoutPromptTag = negative.replaceAll('{prompt}', '');
+              const negative_splitedByComa = negative_withoutPromptTag.split(',');
+              allNegatives = allNegatives.concat( negative_splitedByComa );
+            }
+ 
+            let allNames_finally = [];
+            let allPrompts_finally = [];
+            let allNegatives_finally = [];
+
+            for( const nextName of allNames ){
+              allNames_finally.push( nextName.trim() );
+            }
+
+            for( const nextPrompt of allPrompts ){
+              const trimed = nextPrompt.trim();
+                if( !allPrompts_finally.includes( trimed ) ){
+                  allPrompts_finally.push( trimed );
+                }
+            }
+
+            allPrompts_finally = shuffleArray( allPrompts_finally );
+
+            for( const nextNegative of allNegatives ){
+              const trimed = nextNegative.trim();
+              if( !allNegatives_finally.includes( trimed ) ){
+                allNegatives_finally.push( trimed );
+              }
+            }
+
+            allNegatives_finally = shuffleArray( allNegatives_finally );
+ 
+            return {
+              name: allNames_finally.join(' + '),
+              prompt:  '{prompt},' + allPrompts_finally.join(', '),
+              negative: allNegatives_finally.join(', '),
+            };
+          }
+
+          style_list_mix_process(){
+            const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative, slist_selected_style_name } = this.elements;
+            const miexdStyles = this.mixed_items;
+            let promptAfter = 'there is no selected styles for mixing';
+            let negativeAfter = 'there is no selected styles for mixing';
+            if( miexdStyles.length < 1 ) {
+              slist_toPositive.value = promptAfter;
+              slist_toNegative.value = negativeAfter; 
+              return;
+            } else if( miexdStyles.length === 1 ) { 
+              const nextOptions = this.STYLES[ miexdStyles[0] ];
+              slist_selected_style_name.innerText = nextOptions.name;
+              slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
+              slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
+              $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
+            } else if( miexdStyles.length > 1 ) {  
+              const nextOptions =  this.combineMixedStyles( miexdStyles );
+              slist_selected_style_name.innerText = nextOptions.name;
+              slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
+              slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
+              $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
             }
           }
           
@@ -598,7 +761,7 @@
             slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
             slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
 
-            $$('build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
+            $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
           }
 
           styles_list_render(){
