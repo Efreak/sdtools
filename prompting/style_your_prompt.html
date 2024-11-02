@@ -224,6 +224,7 @@
       <!-- Main Styler -->
       <div id="tab_main_styler">
         <div class="sub_navbar" style="float: right;">
+          <span class="switch_mode" data-value="randomize"><small>randomize</small></span> 
           <span class="switch_mode" data-value="mixer"><small>mixer</small></span> 
           <span class="switch_mode" data-value="editor" id="switch_edit_mode"><small>edit</small></span>
         </div>
@@ -234,12 +235,26 @@
           <!-- negative: <br> -->
           <!-- <textarea name="" id="from_negative" cols="60" rows="5"  style="display: none;"></textarea><br> --> 
           <h4 id="selected_style_name"></h4>
+          <div id="special_modes_control" >
+            <div id="mix_limiter" class="hidden" 
+            title="maximum of elements in result, need to limit the finally prompt (negative is 50% of limit)">
+              Mix limiter: 
+              <input id="mix_limiter_input" type="number" min="1" max="100" step="1" value="15">
+              <button id="mix_button">mix</button>
+            </div>
+            <div id="randomize_style" class="hidden"
+            title="maximum of elements in result, need to limit the finally prompt (negative is 50% of limit)">
+              Random limiter: 
+              <input id="randomize_limiter_input" type="number" min="1" max="100" step="1"  value="15">
+              <button id="randomize_button">run</button>
+            </div>
+          </div>
           Processed prompt: <br>
           <textarea name="" id="to_positive" cols="30" rows="9"></textarea><br><br>
           Recomended negative prompt: <br>
           <textarea name="" id="to_negative" cols="30" rows="9"></textarea><br><br><br>
           compiled: <br>
-          <textarea name="" id="build_for_tele" cols="30" rows="9"></textarea><br> 
+          <textarea name="" id="build_for_tele" cols="30" rows="5"></textarea><br> 
         </div>
         <div class="right_panel" >
           <div id="styles_slider"></div>
@@ -304,6 +319,14 @@
               switch_edit_mode: $$('#switch_edit_mode'),
               switch_mode: $$$('.switch_mode'),
 
+              mix_limiter: $$('#mix_limiter'),
+              mix_limiter_input: $$('#mix_limiter_input'),
+              mix_button: $$('#mix_button'),
+
+              randomize_style: $$('#randomize_style'),
+              randomize_limiter_input: $$('#randomize_limiter_input'),
+              randomize_button: $$('#randomize_button'),
+
               navbar_load_db_upload_file: $$('#navbar_load_db_upload_file'),
               navbar_loadStyles: $$('#navbar_load_db'),
               navbar_saveStyles: $$('#navbar_save_db'),
@@ -329,6 +352,7 @@
 
             this.elements.new_style_context = this.elements.new_style_canvas.getContext('2d');
 
+
             this.options = {
 
               edit_dragstart_index: -1, 
@@ -349,6 +373,11 @@
 
             this.mixed_items = [];
 
+            this.stack_items_for_randmoize = {
+              prompt: [],
+              negative: [],
+            };
+
             this.defaults = {
               base_prompt: 'woman, dressed in outfit'
             }
@@ -362,8 +391,8 @@
               fetch( link ).then( ( data ) => {
                 data.json().then( ( __json ) => {
 
-                  if( __json ) this.STYLES = __json;
-
+                  if( __json ) this.replaceStyles( __json );
+                  
                   this.init();
 
                 }, catchError );
@@ -376,11 +405,70 @@
 
           }
 
+          recalculateRandomItems(){
+            
+            let allPrompts = [];
+            let allNegatives = [];
+
+            for( const nextOptions of this.STYLES ){ 
+              const { prompt, negative } = nextOptions; 
+              const prompt_withoutPromptTag = prompt.replaceAll('{prompt}', '');
+              const prompt_splitedByComa = prompt_withoutPromptTag.split(',');
+              allPrompts = allPrompts.concat( prompt_splitedByComa );
+              const negative_withoutPromptTag = negative.replaceAll('{prompt}', '');
+              const negative_splitedByComa = negative_withoutPromptTag.split(',');
+              allNegatives = allNegatives.concat( negative_splitedByComa );
+            }
+
+            let allPrompts_finally = [];
+            let allNegatives_finally = [];
+
+            for( const nextPrompt of allPrompts ){
+              const trimed = nextPrompt.trim();
+                if( !allPrompts_finally.includes( trimed ) && trimed !== '' ){
+                  allPrompts_finally.push( trimed );
+                }
+            }
+
+            allPrompts_finally = shuffleArray( allPrompts_finally );
+
+            for( const nextNegative of allNegatives ){
+              const trimed = nextNegative.trim();
+              if( !allNegatives_finally.includes( trimed ) && trimed !== '' ){
+                allNegatives_finally.push( trimed );
+              }
+            }
+
+            allNegatives_finally = shuffleArray( allNegatives_finally );
+
+            this.stack_items_for_randmoize = {
+              prompt: allPrompts_finally,
+              negative: allNegatives_finally,
+            };
+
+          }
+
           reset_mixed_styles(){
             this.mixed_items = [];
           }
 
+          replaceStyles( nextStyles ){
+            this.STYLES = nextStyles;
+            this.recalculateRandomItems();
+          }
+
           initEventListeners(){
+
+            const { mix_button, randomize_button } = this.elements;
+
+            mix_button.addEventListener( 'click', () => { 
+              this.render_mixed_style();
+            } );
+
+            randomize_button.addEventListener( 'click', () => { 
+              this.render_random_style();
+            } );
+
 
             const { new_style_image, new_style_processImage, new_style_canvas, new_style_context, new_style_freader } = this.elements;
 
@@ -439,7 +527,7 @@
                   const next_ = this.STYLES.shift();
                   finallyStyles.push( next_ );
                 }
-                this.STYLES = finallyStyles;
+                this.replaceStyles( finallyStyles );
                 this.styles_list_render();
               }
             } );
@@ -462,7 +550,7 @@
                   let _json = null;
                   try{ _json = JSON.parse( _text ); } catch( err ){ console.warn( err ) }
                   if( _json ){
-                    this.STYLES = _json;
+                    this.replaceStyles( _json );
                     this.styles_list_render();
                     console.log( _json );
                   }
@@ -496,6 +584,7 @@
             const { switch_mode } = this.elements;
 
             switch_mode.forEach( ( el, index ) => {
+
               el.addEventListener( 'click', ( e ) => {
                 switch_mode.forEach( ( el2, index ) => {
                   el2.classList.remove('active');
@@ -503,10 +592,24 @@
                 const nextMode = el.dataset.value; 
                 this.mode = this.mode != nextMode ? nextMode : ''; 
                 if( this.mode === nextMode ) el.classList.add('active');
+                this.updateSpecialModesControlElements();
                 this.reset_mixed_styles();
                 this.styles_list_render();
               } );
+
             } );
+
+          }
+
+          updateSpecialModesControlElements(){
+
+            const { mix_limiter, randomize_style } = this.elements;
+
+            mix_limiter.classList.add('hidden');
+            randomize_style.classList.add('hidden');
+
+            if(  this.mode === 'mixer'  ) mix_limiter.classList.remove('hidden');
+            if(  this.mode === 'randomize'  ) randomize_style.classList.remove('hidden');
 
           }
 
@@ -516,8 +619,8 @@
               if( i != styleIndex ){
                 finallyStyles.push( this.STYLES[i] );
               }
-            }
-            this.STYLES = finallyStyles;
+            } 
+            this.replaceStyles( finallyStyles );
             this.styles_list_render();
           }
 
@@ -540,6 +643,7 @@
 
 
           init(){
+            this.recalculateRandomItems();
             this.elements.new_style_canvas.width = this.options.thumb_width;
             this.elements.new_style_canvas.height = this.options.thumb_height;
             $$('#from_positive').value = this.defaults.base_prompt;
@@ -572,8 +676,11 @@
             nextSliderElement.appendChild( name_span );
             this.elements.slist_container.appendChild( nextSliderElement );
 
-            if( this.mode === 'mixer' ){
+            // disable controls
 
+
+            if( this.mode === 'mixer' ){
+              
               const mixer_checkbox = document.createElement('input');
               mixer_checkbox.classList.add('style_mixer_checkbox');
               mixer_checkbox.type = 'checkbox';
@@ -581,15 +688,19 @@
               nextSliderElement.appendChild( mixer_checkbox );
 
               mixer_checkbox.addEventListener('click', (event) => { 
+
                 event.preventDefault();
                 event.stopPropagation();
+
                 if( this.mixed_items.includes( style_index ) ){
                   this.mixed_items.splice( this.mixed_items.indexOf( style_index ), 1);
                 } else {
                   this.mixed_items.push( style_index );
                 }
+
                 this.styles_list_render();
-                this.style_list_mix_process();
+                this.render_mixed_style();
+
               });
 
             }
@@ -678,36 +789,19 @@
 
           }
 
-          combineMixedStyles( miexdStyles ){
- 
-            const allNames = [];
-            let allPrompts = [];
-            let allNegatives = [];
-
-            for( const nextIndex of miexdStyles ){
-              const nextOptions = this.STYLES[ nextIndex ];
-              const { name, prompt, negative } = nextOptions;
-              allNames.push( name );
-              const prompt_withoutPromptTag = prompt.replaceAll('{prompt}', '');
-              const prompt_splitedByComa = prompt_withoutPromptTag.split(',');
-              allPrompts = allPrompts.concat( prompt_splitedByComa );
-              const negative_withoutPromptTag = negative.replaceAll('{prompt}', '');
-              const negative_splitedByComa = negative_withoutPromptTag.split(',');
-              allNegatives = allNegatives.concat( negative_splitedByComa );
-            }
- 
-            let allNames_finally = [];
+          compilePromptAndNegative( allPrompts, allNegatives, limitsFromInput = 8, limitsFromInput_negative = 4 ){
+            
+            
             let allPrompts_finally = [];
             let allNegatives_finally = [];
 
-            for( const nextName of allNames ){
-              allNames_finally.push( nextName.trim() );
-            }
-
             for( const nextPrompt of allPrompts ){
               const trimed = nextPrompt.trim();
-                if( !allPrompts_finally.includes( trimed ) ){
+                if( !allPrompts_finally.includes( trimed ) && trimed !== '' ){
                   allPrompts_finally.push( trimed );
+                  if( allPrompts_finally.length >= limitsFromInput ){
+                    break;
+                  }
                 }
             }
 
@@ -715,13 +809,56 @@
 
             for( const nextNegative of allNegatives ){
               const trimed = nextNegative.trim();
-              if( !allNegatives_finally.includes( trimed ) ){
+              if( !allNegatives_finally.includes( trimed ) && trimed !== '' ){
                 allNegatives_finally.push( trimed );
+                if( allNegatives_finally.length >= limitsFromInput_negative ){
+                  break;
+                }
               }
             }
 
             allNegatives_finally = shuffleArray( allNegatives_finally );
+
+            return {
+              prompt: allPrompts_finally,
+              negative: allNegatives_finally
+            };
+
+          }
+
+          combineMixedStyles( miexdStyles ){
+
+            const { mix_limiter_input } = this.elements; 
+            const limitsFromInput = parseInt( mix_limiter_input.value ) || maxLimits;
+            const limitsFromInput_negative = Math.floor( limitsFromInput * 0.5 );
  
+            const allNames = [];
+            let allPrompts = [];
+            let allNegatives = [];
+
+            for( const nextIndex of miexdStyles ){ 
+              const { name, prompt, negative } = this.STYLES[ nextIndex ];
+
+              allNames.push( name );
+
+              const prompt_withoutPromptTag = prompt.replaceAll('{prompt}', '');
+              const prompt_splitedByComa = prompt_withoutPromptTag.split(',');
+              allPrompts = allPrompts.concat( prompt_splitedByComa );
+
+              const negative_withoutPromptTag = negative.replaceAll('{prompt}', '');
+              const negative_splitedByComa = negative_withoutPromptTag.split(',');
+              allNegatives = allNegatives.concat( negative_splitedByComa );
+            }
+ 
+            const { prompt, negative } = this.compilePromptAndNegative( allPrompts, allNegatives, limitsFromInput, limitsFromInput_negative );
+
+            let allPrompts_finally = prompt;
+            let allNegatives_finally = negative;
+            let allNames_finally = [];
+            for( const nextName of allNames ){
+              allNames_finally.push( nextName.trim() );
+            }
+
             return {
               name: allNames_finally.join(' + '),
               prompt:  '{prompt},' + allPrompts_finally.join(', '),
@@ -729,39 +866,60 @@
             };
           }
 
-          style_list_mix_process(){
+          
+
+
+          // nextOption = { name: '', prompt: '', negative: '' }
+          render_finally_item( nextOption ){
             const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative, slist_selected_style_name } = this.elements;
-            const miexdStyles = this.mixed_items;
-            let promptAfter = 'there is no selected styles for mixing';
-            let negativeAfter = 'there is no selected styles for mixing';
-            if( miexdStyles.length < 1 ) {
-              slist_toPositive.value = promptAfter;
-              slist_toNegative.value = negativeAfter; 
+            if( !nextOption ){
+              slist_toPositive.value = 'there is no selected style';
+              slist_toNegative.value = 'there is no selected style';
               return;
-            } else if( miexdStyles.length === 1 ) { 
-              const nextOptions = this.STYLES[ miexdStyles[0] ];
-              slist_selected_style_name.innerText = nextOptions.name;
-              slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
-              slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
-              $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
-            } else if( miexdStyles.length > 1 ) {  
-              const nextOptions =  this.combineMixedStyles( miexdStyles );
-              slist_selected_style_name.innerText = nextOptions.name;
-              slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
-              slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
-              $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
+            }
+            slist_selected_style_name.innerText = nextOption.name;
+            slist_toPositive.value = nextOption.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
+            slist_toNegative.value = nextOption.negative; //.replaceAll( '{prompt}', fromNegative.value );  
+            $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 864x1152`;
+          }
+
+          render_mixed_style(){
+            const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative, slist_selected_style_name } = this.elements; 
+            if( this.mixed_items.length < 1 ) {
+              this.render_finally_item( null ); 
+            } else if( this.mixed_items.length === 1 ) { 
+              const nextOptions = this.STYLES[ this.mixed_items[0] ];
+              this.render_finally_item( nextOptions ); 
+            } else if( this.mixed_items.length > 1 ) {  
+              const nextOptions =  this.combineMixedStyles( this.mixed_items ); 
+              this.render_finally_item( nextOptions ); 
             }
           }
           
           styles_list_process(){
-            const { slist_fromPositive, slist_fromNegative, slist_toPositive, slist_toNegative, slist_selected_style_name } = this.elements;
-            const totalData = [];
             const nextOptions = this.STYLES[ this.options.styles_list_current_index ];
-            slist_selected_style_name.innerText = nextOptions.name;
-            slist_toPositive.value = nextOptions.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
-            slist_toNegative.value = nextOptions.negative; //.replaceAll( '{prompt}', fromNegative.value );  
+            this.render_finally_item( nextOptions ); 
+          }
+ 
+          render_random_style(){
+            
+            const { randomize_limiter_input } = this.elements; 
+            const limitsFromInput = parseInt( randomize_limiter_input.value ) || maxLimits;
+            const limitsFromInput_negative = Math.floor( limitsFromInput * 0.5 );
 
-            $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 896x1152`;
+            let { prompt, negative } = this.stack_items_for_randmoize;
+            prompt = shuffleArray( prompt );
+            negative = shuffleArray( negative );
+
+
+            const { prompt: allPrompts_finally, negative: allNegatives_finally } = this.compilePromptAndNegative( prompt, negative, limitsFromInput, limitsFromInput_negative );
+            
+            this.render_finally_item( {
+              name: 'random style',
+              prompt:  '{prompt},' + allPrompts_finally.join(', '),
+              negative: allNegatives_finally.join(', '),
+            } ); 
+
           }
 
           styles_list_render(){
