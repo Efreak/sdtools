@@ -880,7 +880,7 @@
             slist_selected_style_name.innerText = nextOption.name;
             slist_toPositive.value = nextOption.prompt.replaceAll( '{prompt}', slist_fromPositive.value );
             slist_toNegative.value = nextOption.negative; //.replaceAll( '{prompt}', fromNegative.value );  
-            $$('#build_for_tele').value = `!gen ${slist_toPositive.value} --neg ${slist_toNegative.value} --size 864x1152`;
+            $$('#build_for_tele').value = `/generate prompt:${slist_toPositive.value} negative_prompt:${slist_toNegative.value} style:sdxl-portrait amount:1`;
           }
 
           render_mixed_style(){
